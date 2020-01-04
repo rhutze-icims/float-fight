@@ -4,8 +4,9 @@ import sys
 
 from board import Board, OURS, THEIRS
 from button import Button
-from config import DARK_BLUE, SCREEN_HEIGHT, SCREEN_WIDTH
+from config import DARK_BLUE, GAME_SIZE, SCREEN_HEIGHT, SCREEN_WIDTH
 from network import Network
+from status_bar import StatusBar
 
 shutdown_signal = False
 
@@ -33,11 +34,12 @@ images = {
 
 outbound_message_queue = queue.Queue()
 
-our_board = Board(10, 5, 0, OURS, images)
-their_board = Board(10, 580, 0, THEIRS, images)
-load_positions_button = Button("Load Positions", 110, 770, our_board.load_positions_from_file)
-save_positions_button = Button("Save Positions", 320, 770, our_board.save_positions_to_file)
-save_positions_button.set_enabled(False)
+our_board = Board(GAME_SIZE, 5, 0, OURS, images)
+their_board = Board(GAME_SIZE, 580, 0, THEIRS, images)
+load_positions_button = Button("Load", 110, 770, our_board.load_positions_from_file)
+save_positions_button = Button("Save", 170, 770, our_board.save_positions_to_file)
+status_bar = StatusBar()
+status_bar.update_text('Choose your positions and an opponent...')
 
 network = Network(outbound_message_queue)
 receiving_thread = network.start_receiving()
@@ -82,13 +84,14 @@ while not shutdown_signal:
             elif received_event.action == 'HIT' and received_event.team == their_team:
                 their_board.record_hit(received_event.row, received_event.col)
 
-            elif received_event.action == 'BANNER':
-                print(received_event.text)
+            elif received_event.action == 'STATUS':
+                status_bar.update_text(received_event.text)
 
     our_board.draw(screen)
     their_board.draw(screen)
     save_positions_button.draw(screen)
     load_positions_button.draw(screen)
+    status_bar.draw(screen)
 
     pygame.display.update()
     clock.tick(15)

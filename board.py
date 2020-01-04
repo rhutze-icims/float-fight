@@ -1,7 +1,7 @@
 import pygame
 import pygame.freetype
 
-from config import CELL_SIZE, WHITE
+from config import BORDER_SIZE, CELL_SIZE, WHITE
 from cell import Cell
 
 OURS = 1
@@ -63,12 +63,12 @@ class Board:
 
     def draw(self, surface):
         for row_col in range(self.grid_size):
-            horizontal_rect = pygame.Rect(self.board_x + 30 + (row_col * (CELL_SIZE + 2)),
+            horizontal_rect = pygame.Rect(self.board_x + BORDER_SIZE + (row_col * (CELL_SIZE + 2)),
                                           self.board_y,
-                                          CELL_SIZE, 30)
+                                          CELL_SIZE, BORDER_SIZE)
             vertical_rect = pygame.Rect(self.board_x,
-                                        self.board_y + 30 + (row_col * (CELL_SIZE + 2)),
-                                        30, CELL_SIZE)
+                                        self.board_y + BORDER_SIZE + (row_col * (CELL_SIZE + 2)),
+                                        BORDER_SIZE, CELL_SIZE)
 
             horizontal_text_rect = self.font.get_rect(str(row_col + 1))
             self.font.render_to(surface,
@@ -108,7 +108,8 @@ class Board:
                 for col in range(self.grid_size):
                     if self.grid[row][col].ship:
                         file.write(str(row) + ',' + str(col) + '\n')
-        event = pygame.event.Event(pygame.USEREVENT, dict(action='BANNER', text='Positions saved to [positions.txt].'))
+        event = pygame.event.Event(
+            pygame.USEREVENT, dict(action='STATUS', text='Positions saved to [positions.txt]'))
         pygame.event.post(event)
 
     def load_positions_from_file(self):

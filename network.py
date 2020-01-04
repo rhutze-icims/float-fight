@@ -2,11 +2,12 @@ import pygame
 import queue
 import socket
 import struct
+from config import MULTICAST_IP, MULTICAST_PORT
 from threading import Thread
 
-multicast_addr = '239.0.0.1'
+multicast_addr = MULTICAST_IP
 bind_addr = '0.0.0.0'
-port = 10000
+port = MULTICAST_PORT
 membership = socket.inet_aton(multicast_addr) + socket.inet_aton(bind_addr)
 
 
@@ -29,7 +30,7 @@ class Network:
 
     def start_receiving(self):
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, membership)
-        self.sock.bind(('0.0.0.0', port))
+        self.sock.bind((bind_addr, port))
         print("Listening on port [%d]..." % self.sock.getsockname()[1])
         thread = Thread(target=self.network_receiver)
         thread.start()

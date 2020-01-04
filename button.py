@@ -1,4 +1,5 @@
 from config import BLACK, BLUE, DARK_BLUE, GREY
+import math
 import pygame
 
 SHADOW_SIZE = 2
@@ -10,13 +11,16 @@ class Button:
         self.action = action
         self.enabled = True
 
-        self.rect = pygame.Rect(x_center - 100, y_center - 20, 200, 40)
-        self.shadow_rect = pygame.Rect(x_center - 100 + SHADOW_SIZE,
-                                       y_center - 20 + SHADOW_SIZE, 200, 40)
-
         self.font = pygame.freetype.Font(None, 18)
         self.text = text
         self.text_rect = self.font.get_rect(self.text)
+
+        button_width = math.ceil(self.text_rect.width / 50) * 50
+
+        self.rect = pygame.Rect(x_center - 100, y_center - 20, button_width, 35)
+        self.shadow_rect = pygame.Rect(x_center - 100 + SHADOW_SIZE,
+                                       y_center - 20 + SHADOW_SIZE, button_width, 35)
+
 
     def draw(self, surface):
         text_color = BLACK if self.enabled else GREY
@@ -24,9 +28,12 @@ class Button:
 
         pygame.draw.rect(surface, BLACK, self.shadow_rect)
         pygame.draw.rect(surface, button_color, self.rect)
+
         self.font.render_to(surface,
-                (self.rect.centerx - (self.text_rect.width / 2),
-                (self.rect.centery - (self.text_rect.height / 2))), None, text_color)
+                            (
+                                self.rect.centerx - (self.text_rect.width / 2),
+                                (self.rect.centery - (self.text_rect.height / 2))
+                            ), None, text_color)
 
     def check_click(self, x, y):
         if self.action is not None and self.enabled \
