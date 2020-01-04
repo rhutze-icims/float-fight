@@ -3,7 +3,8 @@ import queue
 import sys
 
 from board import Board, OURS, THEIRS
-from config import GREY, SCREEN_HEIGHT, SCREEN_WIDTH
+from button import Button
+from config import DARK_BLUE, SCREEN_HEIGHT, SCREEN_WIDTH
 from network import Network
 
 shutdown_signal = False
@@ -21,7 +22,7 @@ else:
 pygame.init()
 pygame.display.set_caption('Float Fight - %s' % our_team)
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-screen.fill(GREY)
+screen.fill(DARK_BLUE)
 
 clock = pygame.time.Clock()
 images = {
@@ -31,8 +32,12 @@ images = {
 }
 
 outbound_message_queue = queue.Queue()
-our_board = Board(10, OURS, images)
-their_board = Board(10, THEIRS, images)
+
+our_board = Board(10, 5, 0, OURS, images)
+their_board = Board(10, 580, 0, THEIRS, images)
+load_positions_button = Button("Load Positions", 110, 770, our_board.load_positions_from_file)
+save_positions_button = Button("Save Positions", 320, 770, our_board.save_positions_to_file)
+save_positions_button.set_enabled(False)
 
 network = Network(outbound_message_queue)
 receiving_thread = network.start_receiving()
@@ -42,8 +47,19 @@ while not shutdown_signal:
 
     for received_event in pygame.event.get():
         if received_event.type == pygame.QUIT:
-
             shutdown_signal = True
+
+        elif received_event.type == pygame.KEYDOWN:
+            print("Down!")
+
+        elif received_event.type == pygame.MOUSEBUTTONUP:
+            if save_positions_button.check_click(received_event.pos[0], received_event.pos[1]):
+                pass
+            elif load_positions_button.check_click(received_event.pos[0], received_event.pos[1]):
+                pass
+            else:
+                our_board.toggle_ship_click(received_event.pos[0], received_event.pos[1])
+                their_board.make_move_click(received_event.pos[0], received_event.pos[1])
 
         elif received_event.type == pygame.USEREVENT:
 
@@ -60,22 +76,20 @@ while not shutdown_signal:
             elif received_event.action == 'WE-WERE-MISSED':
                 outbound_message_queue.put('%s|MISS|%d|%d' % (our_team, received_event.row, received_event.col))
 
-            elif received_event.action == 'MISS':
-                if received_event.team == their_team:
-                    their_board.record_miss(received_event.row, received_event.col)
+            elif received_event.action == 'MISS' and received_event.team == their_team:
+                their_board.record_miss(received_event.row, received_event.col)
 
-            elif received_event.action == 'HIT':
-                if received_event.team == their_team:
-                    their_board.record_hit(received_event.row, received_event.col)
+            elif received_event.action == 'HIT' and received_event.team == their_team:
+                their_board.record_hit(received_event.row, received_event.col)
 
-        elif received_event.type == pygame.KEYDOWN:
-            print("Down!")
+            elif received_event.action == 'BANNER':
+                print(received_event.text)
 
-        elif received_event.type == pygame.MOUSEBUTTONUP:
-            our_board.toggle_ship_click(received_event.pos[0], received_event.pos[1])
-            their_board.make_move_click(received_event.pos[0], received_event.pos[1])
-
+    our_board.draw(screen)
     their_board.draw(screen)
+    save_positions_button.draw(screen)
+    load_positions_button.draw(screen)
+
     pygame.display.update()
     clock.tick(15)
 

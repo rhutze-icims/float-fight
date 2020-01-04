@@ -1,7 +1,7 @@
 import pygame
 import pygame.freetype
 
-from config import WHITE
+from config import CELL_SIZE, WHITE
 from cell import Cell
 
 OURS = 1
@@ -19,10 +19,12 @@ def letter_to_num(letter):
 
 class Board:
 
-    def __init__(self, grid_size, board_type, images):
+    def __init__(self, grid_size, x, y, board_type, images):
         self.font = pygame.freetype.Font(None, 28)
         self.sprites = pygame.sprite.Group()
 
+        self.board_x = x
+        self.board_y = y
         self.grid_size = grid_size
         self.grid = [[Cell(row, col, images) for col in range(grid_size)] for row in range(grid_size)]
 
@@ -32,8 +34,8 @@ class Board:
             for col in range(self.grid_size):
                 cell = self.grid[row][col]
                 self.sprites.add(cell)
-                cell.rect.x = 30 + (col * 77)
-                cell.rect.y = 30 + (row * 77)
+                cell.rect.x = self.board_x + 30 + (col * (CELL_SIZE + 2))
+                cell.rect.y = self.board_y + 30 + (row * (CELL_SIZE + 2))
 
     def make_move_click(self, x, y):
         for row in range(self.grid_size):
@@ -61,8 +63,22 @@ class Board:
 
     def draw(self, surface):
         for row_col in range(self.grid_size):
-            self.font.render_to(surface, (58 + (row_col * 77), 5), str(row_col + 1), WHITE)
-            self.font.render_to(surface, (5, 58 + (row_col * 77)), str(num_to_letter(row_col)), WHITE)
+            horizontal_rect = pygame.Rect(self.board_x + 30 + (row_col * (CELL_SIZE + 2)),
+                                          self.board_y,
+                                          CELL_SIZE, 30)
+            vertical_rect = pygame.Rect(self.board_x,
+                                        self.board_y + 30 + (row_col * (CELL_SIZE + 2)),
+                                        30, CELL_SIZE)
+
+            horizontal_text_rect = self.font.get_rect(str(row_col + 1))
+            self.font.render_to(surface,
+                                (horizontal_rect.centerx - (horizontal_text_rect.width / 2),
+                                 (horizontal_rect.centery - (horizontal_text_rect.height / 2))), None, WHITE)
+
+            vertical_text_rect = self.font.get_rect(num_to_letter(row_col))
+            self.font.render_to(surface,
+                                (vertical_rect.centerx - (vertical_text_rect.width / 2),
+                                 (vertical_rect.centery - (vertical_text_rect.height / 2))), None, WHITE)
 
         self.sprites.draw(surface)
 
@@ -80,4 +96,28 @@ class Board:
     def is_valid(self):
         # TODO: Make sure there are the five ships together.
         return True
+
+    def clear_all_cells(self):
+        for row in range(self.grid_size):
+            for col in range(self.grid_size):
+                self.grid[row][col].clear()
+
+    def save_positions_to_file(self):
+        with open('positions.txt', 'w') as file:
+            for row in range(self.grid_size):
+                for col in range(self.grid_size):
+                    if self.grid[row][col].ship:
+                        file.write(str(row) + ',' + str(col) + '\n')
+        event = pygame.event.Event(pygame.USEREVENT, dict(action='BANNER', text='Positions saved to [positions.txt].'))
+        pygame.event.post(event)
+
+    def load_positions_from_file(self):
+        with open('positions.txt', 'r') as file:
+            self.clear_all_cells()
+            line = file.readline()
+            while line:
+                loaded_position = line.split(',')
+                self.grid[int(loaded_position[0])][int(loaded_position[1])].ship = True
+                line = file.readline()
+        self.sprites.update()
 
