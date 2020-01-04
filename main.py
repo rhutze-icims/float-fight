@@ -4,7 +4,7 @@ import sys
 
 from board import Board, OURS, THEIRS
 from button import Button
-from config import DARK_BLUE, GAME_SIZE, SCREEN_HEIGHT, SCREEN_WIDTH
+from config import *
 from network import Network
 from status_bar import StatusBar
 
@@ -32,18 +32,27 @@ images = {
     'ship': pygame.image.load('battleship.jpg').convert()
 }
 
-outbound_message_queue = queue.Queue()
 
+def start_game():
+    # Is the opponent team selected?
+    # Are our ships set fairly?
+    network.update_game_state(STATE_OUR_TURN)
+
+
+outbound_message_queue = queue.Queue()
 our_board = Board(GAME_SIZE, 5, 0, OURS, images)
 their_board = Board(GAME_SIZE, 580, 0, THEIRS, images)
 load_positions_button = Button("Load", 110, 770, our_board.load_positions_from_file)
 save_positions_button = Button("Save", 170, 770, our_board.save_positions_to_file)
+start_positions_button = Button("Start", 230, 770, start_game)
 status_bar = StatusBar()
-status_bar.update_text('Choose your positions and an opponent...')
 
-network = Network(outbound_message_queue)
+network = Network(outbound_message_queue, our_team)
 receiving_thread = network.start_receiving()
 sending_thread = network.start_sending()
+
+status_bar.update_text('Choose your positions and an opponent...')
+game_state = STATE_PREPARING
 
 while not shutdown_signal:
 
@@ -58,6 +67,8 @@ while not shutdown_signal:
             if save_positions_button.check_click(received_event.pos[0], received_event.pos[1]):
                 pass
             elif load_positions_button.check_click(received_event.pos[0], received_event.pos[1]):
+                pass
+            elif start_positions_button.check_click(received_event.pos[0], received_event.pos[1]):
                 pass
             else:
                 our_board.toggle_ship_click(received_event.pos[0], received_event.pos[1])
@@ -91,6 +102,7 @@ while not shutdown_signal:
     their_board.draw(screen)
     save_positions_button.draw(screen)
     load_positions_button.draw(screen)
+    start_positions_button.draw(screen)
     status_bar.draw(screen)
 
     pygame.display.update()

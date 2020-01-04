@@ -1,5 +1,6 @@
 TODO:
 - Who's turn is it?
+- Who goes first? Exchange random numbers.
 - Expand button width based on text
 - Keyboard grid selection and space/click confirmation
 - Announcing presence to opponents
