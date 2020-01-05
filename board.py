@@ -14,8 +14,8 @@ def letter_to_num(letter):
 
 class Board:
 
-    def __init__(self, grid_size, x, y, images):
-        self.font = pygame.freetype.Font(None, 28)
+    def __init__(self, pygame_font, grid_size, x, y, images):
+        self.font = pygame_font(None, 28)
         self.sprites = pygame.sprite.Group()
 
         self.board_x = x
@@ -109,9 +109,8 @@ class Board:
                 for col in range(self.grid_size):
                     if self.grid[row][col].ship:
                         file.write(str(row) + ',' + str(col) + '\n')
-        event = pygame.event.Event(
-            pygame.USEREVENT, dict(action=ACTION_STATUS, text='Positions saved to [positions.txt]'))
-        pygame.event.post(event)
+        pygame.event.post(pygame.event.Event(
+            pygame.USEREVENT, dict(action=ACTION_STATUS, text='Positions saved to [positions.txt]')))
 
     def load_positions_from_file(self):
         with open('positions.txt', 'r') as file:

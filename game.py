@@ -2,6 +2,7 @@ from board import Board
 from button import Button
 from config import *
 import pygame
+import pygame.freetype
 from status_bar import StatusBar
 from teams import Teams
 
@@ -15,7 +16,7 @@ class Game:
             'explosion': pygame.image.load('explosion.jpg').convert(),
             'ship': pygame.image.load('battleship.jpg').convert()
         }
-        self.our_board = Board(GAME_SIZE, 5, 0, self.images)
+        self.our_board = Board(pygame.freetype.Font, GAME_SIZE, 5, 0, self.images)
 
         self.load_positions_button = Button("Load", 10, 750, self.our_board.load_positions_from_file)
         self.messages_to_send = messages_to_send
@@ -30,7 +31,7 @@ class Game:
         self.start_game_button.set_enabled(False)
         self.status_bar.update_text('Choose your positions, an opponent, and click Start.')
         self.teams = Teams()
-        self.their_board = Board(GAME_SIZE, 580, 0, self.images)
+        self.their_board = Board(pygame.freetype.Font, GAME_SIZE, 580, 0, self.images)
         self.their_team = None
 
     def can_start_game(self):
@@ -81,13 +82,15 @@ class Game:
                 self.their_board.record_hit(event.row, event.col)
                 if self.their_board.is_wiped_out():
                     self.change_game_state(STATE_OUR_WIN)
+                else:
+                    self.change_game_state(STATE_THEIR_TURN)
 
             elif event.action == ACTION_MAKE_MOVE and self.game_state == STATE_OUR_TURN:
                 self.messages_to_send.put('%s|%s|%d|%d' % (self.our_team, ACTION_MOVE, event.row, event.col))
-                self.change_game_state(STATE_THEIR_TURN)
 
             elif event.action == ACTION_MISS and event.team == self.their_team:
                 self.their_board.record_miss(event.row, event.col)
+                self.change_game_state(STATE_THEIR_TURN)
 
             elif event.action == ACTION_MOVE:
                 if event.team == self.their_team and self.our_board.check_move(event.row, event.col) == HANDLED:
