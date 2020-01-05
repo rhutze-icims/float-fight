@@ -1,4 +1,4 @@
-from config import BLACK, BLUE, BUTTON_HEIGHT, DARK_BLUE, GREY, WHITE
+from config import *
 import math
 import pygame
 
@@ -44,8 +44,8 @@ class Button:
                 self.action(self.actionValue)
             else:
                 self.action()
-            return True
-        return False
+            return HANDLED
+        return NOT_HANDLED
 
     def set_enabled(self, enabled):
         self.enabled = enabled

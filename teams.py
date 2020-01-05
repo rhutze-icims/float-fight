@@ -49,7 +49,7 @@ class Teams:
 
     def check_click(self, x, y):
         for team_button in self.recent_team_buttons:
-            if team_button.check_click(x, y):
+            if team_button.check_click(x, y) == HANDLED:
                 for other_button in self.recent_team_buttons:
                     other_button.set_selected(False)
                 team_button.set_selected(True)

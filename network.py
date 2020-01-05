@@ -9,12 +9,12 @@ from threading import Thread
 
 class Network:
 
-    def __init__(self, q, our_team, first_move_number):
-        self.q = q
+    def __init__(self, our_team, first_move_number):
+        self.first_move_number = first_move_number
         self.game_state = STATE_PREPARING
+        self.messages_to_send = queue.Queue()
         self.shutdown_signal = False
         self.team_name = our_team
-        self.first_move_number = first_move_number
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack('b', 1))
@@ -23,6 +23,9 @@ class Network:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
+
+    def get_messages_to_send(self):
+        return self.messages_to_send
 
     def shutdown(self):
         self.shutdown_signal = True
@@ -66,14 +69,14 @@ class Network:
 
         while not self.shutdown_signal:
             if self.game_state == STATE_PREPARING and int(time() - last_beacon_time) > 3:
-                self.q.put('%s|FIND_ME|%d|0' % (self.team_name, self.first_move_number))
+                self.messages_to_send.put('%s|FIND_ME|%d|0' % (self.team_name, self.first_move_number))
                 last_beacon_time = time()
 
             try:
-                outbound_message = self.q.get(timeout=1)
+                outbound_message = self.messages_to_send.get(timeout=1)
                 print("Sending [%s] ..." % outbound_message)
                 self.sock.sendto(str.encode(outbound_message), (MULTICAST_IP, MULTICAST_PORT))
-                self.q.task_done()
+                self.messages_to_send.task_done()
             except queue.Empty:
                 pass
 

@@ -1,12 +1,7 @@
+from cell import Cell
+from config import *
 import pygame
 import pygame.freetype
-
-from config import BORDER_SIZE, CELL_SIZE, WHITE
-from cell import Cell
-
-OURS = 1
-THEIRS = 2
-LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 
 def num_to_letter(num):
@@ -19,7 +14,7 @@ def letter_to_num(letter):
 
 class Board:
 
-    def __init__(self, grid_size, x, y, board_type, images):
+    def __init__(self, grid_size, x, y, images):
         self.font = pygame.freetype.Font(None, 28)
         self.sprites = pygame.sprite.Group()
 
@@ -27,8 +22,6 @@ class Board:
         self.board_y = y
         self.grid_size = grid_size
         self.grid = [[Cell(row, col, images) for col in range(grid_size)] for row in range(grid_size)]
-
-        self.board_type = board_type
 
         for row in range(self.grid_size):
             for col in range(self.grid_size):
@@ -53,8 +46,10 @@ class Board:
         return ship_toggled
 
     def check_move(self, row, col):
-        self.grid[row][col].check_move()
-        self.sprites.update()
+        if self.grid[row][col].check_move():
+            self.sprites.update()
+            return HANDLED
+        return NOT_HANDLED
 
     def record_hit(self, row, col):
         self.grid[row][col].record_hit()
