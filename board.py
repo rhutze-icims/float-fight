@@ -110,7 +110,7 @@ class Board:
                     if self.grid[row][col].ship:
                         file.write(str(row) + ',' + str(col) + '\n')
         event = pygame.event.Event(
-            pygame.USEREVENT, dict(action='STATUS', text='Positions saved to [positions.txt]'))
+            pygame.USEREVENT, dict(action=ACTION_STATUS, text='Positions saved to [positions.txt]'))
         pygame.event.post(event)
 
     def load_positions_from_file(self):

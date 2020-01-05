@@ -1,4 +1,4 @@
-from config import CELL_SIZE, HANDLED, NOT_HANDLED
+from config import *
 import pygame
 
 
@@ -30,7 +30,7 @@ class Cell(pygame.sprite.Sprite):
 
     def make_move_click(self, x, y):
         if self.rect.collidepoint(x, y) and not self.already_played():
-            event = pygame.event.Event(pygame.USEREVENT, dict(action='MAKE-MOVE', row=self.row, col=self.col))
+            event = pygame.event.Event(pygame.USEREVENT, dict(action=ACTION_MAKE_MOVE, row=self.row, col=self.col))
             pygame.event.post(event)
 
     def check_move(self):
@@ -40,11 +40,11 @@ class Cell(pygame.sprite.Sprite):
 
         if self.ship:
             self.hit = True
-            event = pygame.event.Event(pygame.USEREVENT, dict(action='WE-GOT-HIT',  row=self.row, col=self.col))
+            event = pygame.event.Event(pygame.USEREVENT, dict(action=ACTION_WE_GOT_HIT,  row=self.row, col=self.col))
             pygame.event.post(event)
         else:
             self.miss = True
-            event = pygame.event.Event(pygame.USEREVENT, dict(action='WE-WERE-MISSED', row=self.row, col=self.col))
+            event = pygame.event.Event(pygame.USEREVENT, dict(action=ACTION_WE_WERE_MISSED, row=self.row, col=self.col))
             pygame.event.post(event)
         return HANDLED
 

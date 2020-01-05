@@ -51,7 +51,7 @@ class Game:
             self.status_bar.update_text("You lost. Maybe next time.")
         else:
             self.status_bar.update_text('Waiting for %s to make their move...' % self.their_team)
-        pygame.event.post(pygame.event.Event(pygame.USEREVENT, dict(action='GAME_STATE_CHANGED', state=state)))
+        pygame.event.post(pygame.event.Event(pygame.USEREVENT, dict(action=ACTION_GAME_STATE_CHANGED, state=state)))
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -73,42 +73,42 @@ class Game:
                     self.their_board.make_move_click(event.pos[0], event.pos[1])
 
         elif event.type == pygame.USEREVENT:
-            if event.action == 'FIND_ME':
+            if event.action == ACTION_FIND_ME:
                 if not event.team == self.our_team:
                     self.teams.found_team(event.team, event.row)
 
-            elif event.action == 'HIT' and event.team == self.their_team:
+            elif event.action == ACTION_HIT and event.team == self.their_team:
                 self.their_board.record_hit(event.row, event.col)
                 if self.their_board.is_wiped_out():
                     self.change_game_state(STATE_OUR_WIN)
 
-            elif event.action == 'MAKE-MOVE' and self.game_state == STATE_OUR_TURN:
-                self.messages_to_send.put('%s|MOVE|%d|%d' % (self.our_team, event.row, event.col))
+            elif event.action == ACTION_MAKE_MOVE and self.game_state == STATE_OUR_TURN:
+                self.messages_to_send.put('%s|%s|%d|%d' % (self.our_team, ACTION_MOVE, event.row, event.col))
                 self.change_game_state(STATE_THEIR_TURN)
 
-            elif event.action == 'MISS' and event.team == self.their_team:
+            elif event.action == ACTION_MISS and event.team == self.their_team:
                 self.their_board.record_miss(event.row, event.col)
 
-            elif event.action == 'MOVE':
+            elif event.action == ACTION_MOVE:
                 if event.team == self.their_team and self.our_board.check_move(event.row, event.col) == HANDLED:
                     if self.our_board.is_wiped_out():
                         self.change_game_state(STATE_THEIR_WIN)
                     else:
                         self.change_game_state(STATE_OUR_TURN)
 
-            elif event.action == 'SELECT_TEAM':
+            elif event.action == ACTION_SELECT_TEAM:
                 self.selected_their_team = event.team
                 self.selected_their_team_first_move = event.first_move_number
                 self.start_game_button.set_enabled(self.can_start_game())
 
-            elif event.action == 'STATUS':
+            elif event.action == ACTION_STATUS:
                 self.status_bar.update_text(event.text)
 
-            elif event.action == 'WE-GOT-HIT':
-                self.messages_to_send.put('%s|HIT|%d|%d' % (self.our_team, event.row, event.col))
+            elif event.action == ACTION_WE_GOT_HIT:
+                self.messages_to_send.put('%s|%s|%d|%d' % (self.our_team, ACTION_HIT, event.row, event.col))
 
-            elif event.action == 'WE-WERE-MISSED':
-                self.messages_to_send.put('%s|MISS|%d|%d' % (self.our_team, event.row, event.col))
+            elif event.action == ACTION_WE_WERE_MISSED:
+                self.messages_to_send.put('%s|%s|%d|%d' % (self.our_team, ACTION_MISS, event.row, event.col))
 
         self.screen.fill(DARK_BLUE)
         self.our_board.draw(self.screen)

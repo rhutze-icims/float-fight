@@ -15,7 +15,8 @@ def handle_sigint(sig, frame):
 
 
 if len(sys.argv) < 2 or len(sys.argv[1]) > 20:
-    print("\nProvide your team name of up to 20 characters when starting the application.\nExample: python main.py \"My Team Name\"\n")
+    print("\nProvide your team name of up to 20 characters when starting the application." +
+          "\nExample: python main.py \"My Team Name\"\n")
     sys.exit(1)
 our_team = sys.argv[1]
 our_team_first_move = randint(0, 1000)
@@ -39,7 +40,7 @@ while not shutdown_signal:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             shutdown_signal = True
-        elif event.type == pygame.USEREVENT and event.action == GAME_STATE_CHANGED:
+        elif event.type == pygame.USEREVENT and event.action == ACTION_GAME_STATE_CHANGED:
             network.update_game_state(event.state)
         game.handle_event(event)
 

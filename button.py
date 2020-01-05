@@ -7,9 +7,9 @@ SHADOW_SIZE = 2
 
 class Button:
 
-    def __init__(self, text, left, top, action=None, actionValue=None):
+    def __init__(self, text, left, top, action=None, action_value=None):
         self.action = action
-        self.actionValue = actionValue
+        self.action_value = action_value
         self.enabled = True
         self.selected = False
 
@@ -40,8 +40,8 @@ class Button:
 
     def check_click(self, x, y):
         if self.action is not None and self.enabled and self.rect.collidepoint(x, y):
-            if self.actionValue:
-                self.action(self.actionValue)
+            if self.action_value:
+                self.action(self.action_value)
             else:
                 self.action()
             return HANDLED

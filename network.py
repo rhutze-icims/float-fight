@@ -3,7 +3,7 @@ import queue
 import socket
 import struct
 from time import time
-from config import MULTICAST_IP, MULTICAST_PORT, STATE_PREPARING
+from config import ACTION_FIND_ME, MULTICAST_IP, MULTICAST_PORT, STATE_PREPARING
 from threading import Thread
 
 
@@ -69,7 +69,7 @@ class Network:
 
         while not self.shutdown_signal:
             if self.game_state == STATE_PREPARING and int(time() - last_beacon_time) > 3:
-                self.messages_to_send.put('%s|FIND_ME|%d|0' % (self.team_name, self.first_move_number))
+                self.messages_to_send.put('%s|%s|%d|0' % (self.team_name, ACTION_FIND_ME, self.first_move_number))
                 last_beacon_time = time()
 
             try:
