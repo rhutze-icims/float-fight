@@ -12,6 +12,7 @@ class Network:
     def __init__(self, our_team, first_move_number):
         self.first_move_number = first_move_number
         self.game_state = STATE_PREPARING
+        self.message_counter = 100
         self.messages_to_send = queue.Queue()
         self.shutdown_signal = False
         self.team_name = our_team
@@ -56,8 +57,8 @@ class Network:
                 if len(message_parts) > 3 and not message_parts[0] == self.team_name:
                     print("Received: [%s] from [%s]" % (received, address))
                     event = pygame.event.Event(pygame.USEREVENT, dict(
-                        team=message_parts[0], action=message_parts[1],
-                        row=int(message_parts[2]), col=int(message_parts[3])))
+                        team=message_parts[1], action=message_parts[2],
+                        row=int(message_parts[3]), col=int(message_parts[4])))
                     pygame.event.post(event)
             except socket.timeout:
                 pass
@@ -74,8 +75,10 @@ class Network:
 
             try:
                 outbound_message = self.messages_to_send.get(timeout=1)
-                print("Sending [%s] ..." % outbound_message)
-                self.sock.sendto(str.encode(outbound_message), (MULTICAST_IP, MULTICAST_PORT))
+                self.message_counter += 1
+                encoded_message = str.encode("%d|%s" % (self.message_counter, outbound_message))
+                self.sock.sendto(encoded_message, (MULTICAST_IP, MULTICAST_PORT))
+                print("Sent: [%s]" % encoded_message)
                 self.messages_to_send.task_done()
             except queue.Empty:
                 pass
