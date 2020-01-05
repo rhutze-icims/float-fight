@@ -18,9 +18,6 @@ class StatusBar:
 
         if len(self.text) > 0:
             text_rect = self.font.get_rect(self.text)
-            self.font.render_to(surface,
-                                (
-                                    self.rect.centerx - (text_rect.width / 2),
-                                    (self.rect.centery - (text_rect.height / 2))
-                                ), None, BLACK)
+            self.font.render_to(surface, (self.rect.centerx - (text_rect.width / 2),
+                                (self.rect.centery - (text_rect.height / 2))), self.text, BLACK)
 

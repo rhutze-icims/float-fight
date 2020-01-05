@@ -44,10 +44,13 @@ class Board:
         self.sprites.update()
 
     def toggle_ship_click(self, x, y):
+        ship_toggled = False
         for row in range(self.grid_size):
             for col in range(self.grid_size):
-                self.grid[row][col].toggle_ship_click(x, y)
+                if self.grid[row][col].toggle_ship_click(x, y):
+                    ship_toggled = True
         self.sprites.update()
+        return ship_toggled
 
     def check_move(self, row, col):
         self.grid[row][col].check_move()
@@ -73,12 +76,14 @@ class Board:
             horizontal_text_rect = self.font.get_rect(str(row_col + 1))
             self.font.render_to(surface,
                                 (horizontal_rect.centerx - (horizontal_text_rect.width / 2),
-                                 (horizontal_rect.centery - (horizontal_text_rect.height / 2))), None, WHITE)
+                                (horizontal_rect.centery - (horizontal_text_rect.height / 2))),
+                                str(row_col + 1), WHITE)
 
             vertical_text_rect = self.font.get_rect(num_to_letter(row_col))
             self.font.render_to(surface,
                                 (vertical_rect.centerx - (vertical_text_rect.width / 2),
-                                 (vertical_rect.centery - (vertical_text_rect.height / 2))), None, WHITE)
+                                (vertical_rect.centery - (vertical_text_rect.height / 2))),
+                                num_to_letter(row_col), WHITE)
 
         self.sprites.draw(surface)
 
@@ -95,7 +100,8 @@ class Board:
 
     def is_valid(self):
         # TODO: Make sure there are the five ships together.
-        return True
+        # return True
+        return self.grid[0][0].ship
 
     def clear_all_cells(self):
         for row in range(self.grid_size):

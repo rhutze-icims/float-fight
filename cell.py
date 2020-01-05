@@ -46,6 +46,9 @@ class Cell(pygame.sprite.Sprite):
     def toggle_ship_click(self, x, y):
         if self.rect.collidepoint(x, y):
             self.ship = not self.ship
+            return True
+        else:
+            return False
 
     def clear(self):
         self.ship = False
