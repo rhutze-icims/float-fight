@@ -2,9 +2,9 @@ import pygame
 import queue
 import socket
 import struct
-from time import time
+from time import sleep, time
 from config import ACTION_FIND_ME, MULTICAST_IP, MULTICAST_PORT, STATE_PREPARING
-from threading import Thread
+from threading import Lock, Thread
 
 
 class Network:
@@ -14,6 +14,9 @@ class Network:
         self.game_state = STATE_PREPARING
         self.message_counter = 100
         self.messages_to_send = queue.Queue()
+        self.unacked_last_attempt = None
+        self.unacked_message = None
+        self.send_lock = Lock()
         self.shutdown_signal = False
         self.team_name = our_team
 
@@ -54,16 +57,42 @@ class Network:
             try:
                 received, address = self.sock.recvfrom(1024)
                 message_parts = received.decode("utf-8").split('|')
-                if len(message_parts) > 3 and not message_parts[0] == self.team_name:
-                    print("Received: [%s] from [%s]" % (received, address))
-                    event = pygame.event.Event(pygame.USEREVENT, dict(
-                        team=message_parts[1], action=message_parts[2],
-                        row=int(message_parts[3]), col=int(message_parts[4])))
-                    pygame.event.post(event)
+                if received.startswith(b'ACK-') and message_parts[2] == self.team_name:
+                    self.process_acknowledgement(message_parts)
+                elif not message_parts[1] == self.team_name:
+                    if len(message_parts) > 4:
+                        print("Received: [%s] from [%s]" % (received, address))
+
+                        if received.find(ACTION_FIND_ME.encode('utf-8')) < 0:
+                            # self.acknowledge(received)
+                            pass
+
+                        event = pygame.event.Event(pygame.USEREVENT, dict(
+                            team=message_parts[1], action=message_parts[2],
+                            row=int(message_parts[3]), col=int(message_parts[4])))
+                        pygame.event.post(event)
             except socket.timeout:
                 pass
             finally:
                 self.sock.settimeout(None)
+
+    def acknowledge(self, message):
+        message_parts = message.decode("utf-8").split('|')
+        message_number = message_parts[0]
+        from_team = message_parts[1]
+        message = "ACK-%s|%s|%s" % (message_number, self.team_name, from_team)
+        with self.send_lock:
+            self.sock.sendto(str.encode(message), (MULTICAST_IP, MULTICAST_PORT))
+        print("Acknowledged: [%s]" % message)
+
+    def process_acknowledgement(self, message_parts):
+        with self.send_lock:
+            unacked_message_number = self.unacked_message[:str(self.unacked_message).index('|')]
+            if self.unacked_message \
+                    and message_parts[0] == ('ACK-%s' % unacked_message_number) \
+                    and message_parts[2] == self.team_name:
+                print('Received acknowledgement from %s for message #%s.' % (message_parts[1], unacked_message_number))
+                self.unacked_message = None
 
     def network_sender(self):
         last_beacon_time = time()
@@ -73,13 +102,32 @@ class Network:
                 self.messages_to_send.put('%s|%s|%d|0' % (self.team_name, ACTION_FIND_ME, self.first_move_number))
                 last_beacon_time = time()
 
-            try:
-                outbound_message = self.messages_to_send.get(timeout=1)
-                self.message_counter += 1
-                encoded_message = str.encode("%d|%s" % (self.message_counter, outbound_message))
-                self.sock.sendto(encoded_message, (MULTICAST_IP, MULTICAST_PORT))
-                print("Sent: [%s]" % encoded_message)
-                self.messages_to_send.task_done()
-            except queue.Empty:
-                pass
+            ready_to_send_next_message = False
+            with self.send_lock:
+                if self.unacked_message is None:
+                    ready_to_send_next_message = True
+                else:
+                    if time() - self.unacked_last_attempt > 5:
+                        print('Retrying: %s' % self.unacked_message)
+                        self.unacked_last_attempt = time()
+                        self.sock.sendto(str.encode(self.unacked_message), (MULTICAST_IP, MULTICAST_PORT))
 
+            if not ready_to_send_next_message:
+                sleep(1)
+            else:
+                try:
+                    outbound_message = self.messages_to_send.get(timeout=1)
+                    self.message_counter += 1
+                    message = "%d|%s" % (self.message_counter, outbound_message)
+
+                    with self.send_lock:
+                        if message.find(ACTION_FIND_ME) < 0:
+                            # No need to acknowledge presence beacons.
+                            self.unacked_message = message
+                            self.unacked_last_attempt = time()
+                        self.sock.sendto(str.encode(message), (MULTICAST_IP, MULTICAST_PORT))
+
+                    print("Sent: [%s]" % message)
+                    self.messages_to_send.task_done()
+                except queue.Empty:
+                    pass

@@ -12,8 +12,9 @@
 
 # TODO:
 
-- Network message retries until we hear back from other team.
 - Keyboard grid selection and space/click confirmation
-- Check for full ship placement before game starts
+- Select active ship color before placing ship positions.
+- Check for valid ship placement before game starts
 - Protect network protocol from user-entered pipes
-- Create second column for team buttons
+- Create second column when lots of team selection buttons
+- Don't let first move happen until both teams have started.
