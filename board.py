@@ -90,7 +90,7 @@ class Board:
             for col in range(self.grid_size):
                 if self.grid[row][col].hit:
                     hits_so_far += 1
-        print("So far, there are %d hits of the needed %d to win." % (hits_so_far, hits_to_win))
+        print("So far, %d hit(s) of the %d needed to win." % (hits_so_far, hits_to_win))
         return hits_so_far >= hits_to_win
 
     def is_valid(self):
