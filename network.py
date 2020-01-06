@@ -64,8 +64,7 @@ class Network:
                         print("Received: [%s] from [%s]" % (received, address))
 
                         if received.find(ACTION_FIND_ME.encode('utf-8')) < 0:
-                            # self.acknowledge(received)
-                            pass
+                            self.acknowledge(received)
 
                         event = pygame.event.Event(pygame.USEREVENT, dict(
                             team=message_parts[1], action=message_parts[2],
