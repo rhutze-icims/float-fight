@@ -30,8 +30,7 @@ shutdown_signal = False
 signal.signal(signal.SIGINT, handle_sigint)
 
 network = Network(our_team, our_team_first_move)
-receiving_thread = network.start_receiving()
-sending_thread = network.start_sending()
+networking_thread = network.start()
 
 game = Game(screen, network.get_messages_to_send(), our_team, our_team_first_move)
 
@@ -48,8 +47,7 @@ while not shutdown_signal:
     pygame.display.update()
 
 network.shutdown()
-sending_thread.join()
-receiving_thread.join()
+networking_thread.join()
 
 pygame.quit()
 sys.exit(0)
