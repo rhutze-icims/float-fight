@@ -17,17 +17,19 @@ class Teams:
     def __init__(self):
         self.rect = pygame.Rect(self.panel_x, self.panel_y, self.panel_width, self.panel_height)
 
-    def found_team(self, team, first_move_number):
+    def found_team(self, team, who_gets_to_be_x_number):
         if team not in self.recent_teams:
             print('Registering team [%s]...' % team)
 
             self.recent_teams[team] = {
-                'first_move_number': first_move_number,
+                'who_gets_to_be_x_number': who_gets_to_be_x_number,
                 'updated': time()
             }
 
             number_of_teams = len(self.recent_teams)
-            button = Button(team, self.panel_x + BORDER_SIZE, number_of_teams * (BUTTON_HEIGHT + BORDER_SIZE), self.select_team, team)
+            button = Button(team, self.panel_x + BORDER_SIZE,
+                            number_of_teams * (BUTTON_HEIGHT + BORDER_SIZE),
+                            self.select_team, team)
             self.recent_team_buttons.append(button)
 
         self.recent_teams[team]['updated'] = time()
@@ -43,7 +45,7 @@ class Teams:
         event = pygame.event.Event(pygame.USEREVENT, dict(
             action='SELECT_TEAM',
             team=team,
-            first_move_number=self.recent_teams[team]['first_move_number']
+            who_gets_to_be_x_number=self.recent_teams[team]['who_gets_to_be_x_number']
         ))
         pygame.event.post(event)
 

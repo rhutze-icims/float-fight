@@ -19,20 +19,20 @@ if len(sys.argv) < 2 or len(sys.argv[1]) > 20:
           "\nExample: python main.py \"My Team Name\"\n")
     sys.exit(1)
 our_team = sys.argv[1]
-our_team_first_move = randint(0, 1000)
+who_gets_to_be_x_number = randint(0, 1000)
 
 pygame.init()
-pygame.display.set_caption('Float Fight - %s' % our_team)
+pygame.display.set_caption('Tic Tac Cinco - %s' % our_team)
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 
 shutdown_signal = False
 signal.signal(signal.SIGINT, handle_sigint)
 
-network = Network(our_team, our_team_first_move)
+network = Network(our_team, who_gets_to_be_x_number)
 networking_thread = network.start()
 
-game = Game(screen, network.get_messages_to_send(), our_team, our_team_first_move)
+game = Game(screen, network.get_messages_to_send(), our_team, who_gets_to_be_x_number)
 
 while not shutdown_signal:
 

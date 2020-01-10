@@ -12,9 +12,8 @@
 
 # TODO:
 
-- Keyboard grid selection and space/click confirmation
-- Select active ship color before placing ship positions.
-- Check for valid ship placement before game starts
+- Detect wins and draws
 - Protect network protocol from user-entered pipes
 - Create second column when lots of team selection buttons
 - Don't let first move happen until both teams have started.
+- Keyboard grid selection and space/click confirmation

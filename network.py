@@ -9,9 +9,10 @@ from threading import Lock, Thread
 
 class Network:
 
-    def __init__(self, our_team, first_move_number):
-        self.first_move_number = first_move_number
+    def __init__(self, our_team, who_gets_to_be_x_number):
+        self.who_gets_to_be_x_number = who_gets_to_be_x_number
         self.game_state = STATE_PREPARING
+        self.last_beacon_time = time()
         self.message_counter = 100
         self.messages_to_send = queue.Queue()
         self.unacked_last_attempt = None
@@ -53,7 +54,7 @@ class Network:
             self.exhaust_send_queue()
 
     def network_receive(self):
-        self.sock.settimeout(1.5)
+        self.sock.settimeout(1.0)
         try:
             received, address = self.sock.recvfrom(1024)
             message_parts = received.decode("utf-8").split('|')
@@ -77,7 +78,7 @@ class Network:
 
     def exhaust_send_queue(self):
         if self.game_state == STATE_PREPARING and int(time() - self.last_beacon_time) > 3:
-            self.messages_to_send.put('%s|%s|%d|0' % (self.team_name, ACTION_FIND_ME, self.first_move_number))
+            self.messages_to_send.put('%s|%s|%d|0' % (self.team_name, ACTION_FIND_ME, self.who_gets_to_be_x_number))
             self.last_beacon_time = time()
 
         ready_to_send_next_message = False

@@ -9,38 +9,44 @@ from teams import Teams
 
 class Game:
 
-    def __init__(self, screen, messages_to_send, our_team, our_team_first_move):
+    def __init__(self, screen, messages_to_send, our_team, who_gets_to_be_x_number):
         self.game_state = STATE_PREPARING
         self.images = {
-            'ocean': pygame.image.load('ocean.jpg').convert(),
-            'explosion': pygame.image.load('explosion.jpg').convert(),
-            'ship': pygame.image.load('battleship.jpg').convert()
+            'o': pygame.image.load('o.jpg').convert(),
+            'x': pygame.image.load('x.jpg').convert()
         }
-        self.our_board = Board(pygame.freetype.Font, GAME_SIZE, 5, 0, self.images)
 
-        self.load_positions_button = Button("Load", 10, 750, self.our_board.load_positions_from_file)
+        self.board = Board(pygame.freetype.Font, GAME_SIZE, 5, 0, self.images)
         self.messages_to_send = messages_to_send
         self.our_team = our_team
-        self.our_team_first_move = our_team_first_move
-        self.save_positions_button = Button("Save", 70, 750, self.our_board.save_positions_to_file)
-        self.start_game_button = Button("Start", 130, 750, self.start_game)
-        self.status_bar = StatusBar()
+        self.our_team_letter = '?'
+        self.start_game_button = Button("Start", 10, 450, self.start_game)
         self.screen = screen
         self.selected_their_team = None
-        self.selected_their_team_first_move = None
+        self.selected_their_team_who_gets_to_be_x_number = None
         self.start_game_button.set_enabled(False)
-        self.status_bar.update_text('Choose your positions, an opponent, and click Start.')
+        self.status_bar = StatusBar()
         self.teams = Teams()
-        self.their_board = Board(pygame.freetype.Font, GAME_SIZE, 580, 0, self.images)
         self.their_team = None
+        self.their_team_letter = '?'
+        self.who_gets_to_be_x_number = who_gets_to_be_x_number
+
+        self.status_bar.update_text('Choose your positions, an opponent, and click Start.')
 
     def can_start_game(self):
-        return self.selected_their_team is not None and self.our_board.is_valid()
+        return self.selected_their_team is not None
 
     def start_game(self):
         self.their_team = self.selected_their_team
-        state = STATE_OUR_TURN if self.our_team_first_move > self.selected_their_team_first_move else STATE_THEIR_TURN
-        self.change_game_state(state)
+
+        if self.who_gets_to_be_x_number > self.selected_their_team_who_gets_to_be_x_number:
+            self.our_team_letter = 'x'
+            self.their_team_letter = 'o'
+            self.change_game_state(STATE_OUR_TURN)
+        else:
+            self.our_team_letter = 'o'
+            self.their_team_letter = 'x'
+            self.change_game_state(STATE_THEIR_TURN)
 
     def change_game_state(self, state):
         self.game_state = state
@@ -54,74 +60,60 @@ class Game:
             self.status_bar.update_text('Waiting for %s to make their move...' % self.their_team)
         pygame.event.post(pygame.event.Event(pygame.USEREVENT, dict(action=ACTION_GAME_STATE_CHANGED, state=state)))
 
-    def handle_event(self, event):
-        if event.type == pygame.KEYDOWN:
-            print("Down!")
+    def handle_move(self, team, row, col):
+        letter_of_move = self.our_team_letter if team == self.our_team else self.their_team_letter
+        self.board.record_move(letter_of_move, row, col)
 
-        elif event.type == pygame.MOUSEBUTTONUP:
-            if self.save_positions_button.check_click(event.pos[0], event.pos[1]) == HANDLED:
-                pass
-            elif self.load_positions_button.check_click(event.pos[0], event.pos[1]) == HANDLED:
-                pass
-            elif self.game_state == STATE_PREPARING \
-                    and self.our_board.toggle_ship_click(event.pos[0], event.pos[1]) == HANDLED:
-                self.start_game_button.set_enabled(self.can_start_game())
+        if self.board.is_their_win():
+            self.change_game_state(STATE_THEIR_WIN)
+        elif self.board.is_our_win():
+            self.change_game_state(STATE_OUR_WIN)
+        elif self.board.is_tie():
+            self.change_game_state(STATE_DRAW)
+        elif team == self.our_team:
+            self.change_game_state(STATE_THEIR_TURN)
+        elif team == self.their_team:
+            self.change_game_state(STATE_OUR_TURN)
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONUP:
+
+            if self.game_state == STATE_PREPARING:
+                self.teams.check_click(event.pos[0], event.pos[1])
+                self.start_game_button.check_click(event.pos[0], event.pos[1])
             else:
-                if self.game_state == STATE_PREPARING:
-                    self.teams.check_click(event.pos[0], event.pos[1])
-                    self.start_game_button.check_click(event.pos[0], event.pos[1])
-                else:
-                    self.their_board.make_move_click(event.pos[0], event.pos[1])
+                self.board.make_move_click(event.pos[0], event.pos[1])
 
         elif event.type == pygame.USEREVENT:
+
             if event.action == ACTION_FIND_ME:
                 if not event.team == self.our_team:
                     self.teams.found_team(event.team, event.row)
 
-            elif event.action == ACTION_HIT and event.team == self.their_team:
-                self.their_board.record_hit(event.row, event.col)
-                if self.their_board.is_wiped_out():
-                    self.change_game_state(STATE_OUR_WIN)
-                else:
-                    self.change_game_state(STATE_THEIR_TURN)
+            # A move from the network. Ignore hearing a message from our own team, just in case.
+            elif event.action == ACTION_MOVE and event.team == self.their_team:
+                self.handle_move(event.team, event.row, event.col)
 
+            # A move on our local board. Ignore clicking our board if it's not our turn.
             elif event.action == ACTION_MAKE_MOVE and self.game_state == STATE_OUR_TURN:
+                # Announce to the network what the move was.
                 self.messages_to_send.put('%s|%s|%d|%d' % (self.our_team, ACTION_MOVE, event.row, event.col))
-
-            elif event.action == ACTION_MISS and event.team == self.their_team:
-                self.their_board.record_miss(event.row, event.col)
-                self.change_game_state(STATE_THEIR_TURN)
-
-            elif event.action == ACTION_MOVE:
-                if event.team == self.their_team and self.our_board.check_move(event.row, event.col) == HANDLED:
-                    if self.our_board.is_wiped_out():
-                        self.change_game_state(STATE_THEIR_WIN)
-                    else:
-                        self.change_game_state(STATE_OUR_TURN)
+                # Update the board, check for a winner, and change turns.
+                self.handle_move(self.our_team, event.row, event.col)
 
             elif event.action == ACTION_SELECT_TEAM:
                 self.selected_their_team = event.team
-                self.selected_their_team_first_move = event.first_move_number
+                self.selected_their_team_who_gets_to_be_x_number = event.who_gets_to_be_x_number
                 self.start_game_button.set_enabled(self.can_start_game())
 
             elif event.action == ACTION_STATUS:
                 self.status_bar.update_text(event.text)
 
-            elif event.action == ACTION_WE_GOT_HIT:
-                self.messages_to_send.put('%s|%s|%d|%d' % (self.our_team, ACTION_HIT, event.row, event.col))
-
-            elif event.action == ACTION_WE_WERE_MISSED:
-                self.messages_to_send.put('%s|%s|%d|%d' % (self.our_team, ACTION_MISS, event.row, event.col))
-
         self.screen.fill(DARK_BLUE)
-        self.our_board.draw(self.screen)
+        self.board.draw(self.screen)
         self.status_bar.draw(self.screen)
 
         if self.game_state == STATE_PREPARING:
-            self.save_positions_button.draw(self.screen)
-            self.load_positions_button.draw(self.screen)
             self.start_game_button.draw(self.screen)
             self.teams.draw(self.screen)
-        else:
-            self.their_board.draw(self.screen)
 
