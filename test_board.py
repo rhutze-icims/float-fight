@@ -7,14 +7,12 @@ class TestBoard(unittest.TestCase):
 
     def setUp(self):
         mock_font = Mock()
-        self.board = Board(mock_font, 10, 0, 0, None)
+        self.board = Board(mock_font, 5, 0, 0, None)
 
-    def test_is_valid(self):
-        self.board.grid[0][0].ship = False
-        self.assertFalse(self.board.is_valid())
-
-        self.board.grid[0][0].ship = True
-        self.assertTrue(self.board.is_valid())
+    def test_is_our_win(self):
+        self.board.grid[0][0].x = True
+        self.board.grid[0][1].x = False
+        self.assertFalse(self.board.is_our_win())
 
 
 if __name__ == '__main__':
