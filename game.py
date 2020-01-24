@@ -50,12 +50,15 @@ class Game:
 
     def change_game_state(self, state):
         self.game_state = state
+
         if state == STATE_OUR_TURN:
             self.status_bar.update_text("It's your move. Good luck!")
         elif state == STATE_OUR_WIN:
             self.status_bar.update_text("Congratulations! You win!")
         elif state == STATE_THEIR_WIN:
             self.status_bar.update_text("You lost. Maybe next time.")
+        elif state == STATE_DRAW:
+            self.status_bar.update_text("Looks like there are no moves left.")
         else:
             self.status_bar.update_text('Waiting for %s to make their move...' % self.their_team)
         pygame.event.post(pygame.event.Event(pygame.USEREVENT, dict(action=ACTION_GAME_STATE_CHANGED, state=state)))
@@ -64,9 +67,11 @@ class Game:
         letter_of_move = self.our_team_letter if team == self.our_team else self.their_team_letter
         self.board.record_move(letter_of_move, row, col)
 
-        if self.board.is_their_win():
+        winning_team_letter = self.board.is_win()
+
+        if winning_team_letter == self.their_team_letter:
             self.change_game_state(STATE_THEIR_WIN)
-        elif self.board.is_our_win():
+        elif winning_team_letter == self.our_team_letter:
             self.change_game_state(STATE_OUR_WIN)
         elif self.board.is_tie():
             self.change_game_state(STATE_DRAW)

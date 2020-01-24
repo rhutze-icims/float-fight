@@ -37,17 +37,72 @@ class Board:
     def draw(self, surface):
         self.sprites.draw(surface)
 
-    def is_our_win(self):
-        return False
+    def is_win(self):
+        for row in range(self.grid_size):
+            # Check across the columns of this row.
+            tally = 0
+            for col in range(self.grid_size):
+                if self.grid[row][col].x:
+                    tally = tally + 1
+                elif self.grid[row][col].o:
+                    tally = tally - 1
+            if tally == self.grid_size * 1:
+                return 'x'
+            if tally == self.grid_size * -1:
+                return 'o'
 
-    def is_their_win(self):
-        return False
+        for col in range(self.grid_size):
+            # Check across the rows of this column.
+            tally = 0
+            for row in range(self.grid_size):
+                if self.grid[row][col].x:
+                    tally = tally + 1
+                elif self.grid[row][col].o:
+                    tally = tally - 1
+            if tally == self.grid_size * 1:
+                return 'x'
+            if tally == self.grid_size * -1:
+                return 'o'
+
+        tally = 0
+        for diag in range(self.grid_size):
+            if self.grid[diag][diag].x:
+                tally = tally + 1
+            elif self.grid[diag][diag].o:
+                tally = tally - 1
+            if tally == self.grid_size * 1:
+                return 'x'
+            if tally == self.grid_size * -1:
+                return 'o'
+
+        return None
 
     def is_tie(self):
-        return False
+        if self.is_win():
+            return False
+        # If there are zero spots left.
+        tally = 0
+        for row in range(self.grid_size):
+            for col in range(self.grid_size):
+                if not self.grid[row][col].x and not self.grid[row][col].o:
+                    tally = tally + 1
+        return tally == 0
 
     def clear_all_cells(self):
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 self.grid[row][col].clear()
+
+    def __str__(self):
+        output = ""
+        for row in range(self.grid_size):
+            output += "\n"
+            for col in range(self.grid_size):
+                if self.grid[row][col].x:
+                    output += " X "
+                elif self.grid[row][col].o:
+                    output += " O "
+                else:
+                    output += " . "
+        return output
 
