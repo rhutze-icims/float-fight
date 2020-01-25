@@ -4,7 +4,7 @@
 
 # Testing
 
-`python --module unittest`
+`python -m unittest`
 
 # Running
 
