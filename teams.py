@@ -7,7 +7,7 @@ from time import time
 class Teams:
 
     panel_x = (CELL_SIZE * GAME_SIZE) + (2 * BORDER_SIZE) + 15
-    panel_y = 15
+    panel_y = 15 + HEADER_HEIGHT
     panel_width = (CELL_SIZE * GAME_SIZE) + BORDER_SIZE
     panel_height = (CELL_SIZE * GAME_SIZE) + BORDER_SIZE
 
@@ -27,7 +27,11 @@ class Teams:
             }
 
             number_of_teams = len(self.recent_teams)
-            button = Button(team, self.panel_x + BORDER_SIZE, number_of_teams * (BUTTON_HEIGHT + BORDER_SIZE), self.select_team, team)
+            button = Button(team,
+                            self.panel_x + BORDER_SIZE,
+                            HEADER_HEIGHT + (number_of_teams * (BUTTON_HEIGHT + BORDER_SIZE)),
+                            self.select_team,
+                            team)
             self.recent_team_buttons.append(button)
 
         self.recent_teams[team]['updated'] = time()

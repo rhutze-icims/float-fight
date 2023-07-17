@@ -1,10 +1,10 @@
 # Preparing
 
-`pip install -r requirements.txt`
+`python3 -m pip install -r requirements.txt`
 
 # Testing
 
-`python --module unittest`
+`python3 -m unittest`
 
 # Running
 
@@ -12,9 +12,10 @@
 
 # TODO:
 
+- Visually acknowledge that a move has been sent in the grid.
+- Don't let first move happen until both teams have started.
+- Check for valid ship placement before game starts
+- Create second column when lots of team selection buttons
 - Keyboard grid selection and space/click confirmation
 - Select active ship color before placing ship positions.
-- Check for valid ship placement before game starts
 - Protect network protocol from user-entered pipes
-- Create second column when lots of team selection buttons
-- Don't let first move happen until both teams have started.

@@ -2,7 +2,7 @@ import pygame
 import queue
 import socket
 import struct
-from time import sleep, time
+from time import time
 from config import ACTION_FIND_ME, MULTICAST_IP, MULTICAST_PORT, STATE_PREPARING
 from threading import Lock, Thread
 
@@ -26,7 +26,7 @@ class Network:
         # Local Testing
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 0)
+        self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
 
     def get_messages_to_send(self):
         return self.messages_to_send
@@ -42,7 +42,7 @@ class Network:
         membership = socket.inet_aton(MULTICAST_IP) + socket.inet_aton('0.0.0.0')
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, membership)
         self.sock.bind(('0.0.0.0', MULTICAST_PORT))
-        print("Listening on port [%d]..." % self.sock.getsockname()[1])
+        print(f"Listening on port [{self.sock.getsockname()[1]}]...")
         thread = Thread(target=self.network_loop)
         thread.start()
         return thread

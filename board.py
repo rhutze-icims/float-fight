@@ -121,4 +121,3 @@ class Board:
                 self.grid[int(loaded_position[0])][int(loaded_position[1])].ship = True
                 line = file.readline()
         self.sprites.update()
-
