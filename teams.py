@@ -19,7 +19,7 @@ class Teams:
 
     def found_team(self, team, first_move_number):
         if team not in self.recent_teams:
-            print('Registering team [%s]...' % team)
+            print(f"Registering team [{team}]...")
 
             self.recent_teams[team] = {
                 'first_move_number': first_move_number,
@@ -43,7 +43,7 @@ class Teams:
             button.draw(surface)
 
     def select_team(self, team):
-        print('Selected team [%s].' % team)
+        print(f"Selected team [{team}].")
         event = pygame.event.Event(pygame.USEREVENT, dict(
             action='SELECT_TEAM',
             team=team,

@@ -3,6 +3,7 @@ import pygame
 
 
 class Cell(pygame.sprite.Sprite):
+    firing = False  # We're firing here
     hit = False  # What we hear from them
     miss = False  # What we hear from them
     ship = False  # Keep track of our own ships
@@ -19,11 +20,13 @@ class Cell(pygame.sprite.Sprite):
 
     def update(self):
         if self.hit:
-            self.image = self.images['explosion']
+            self.image = self.images['hit']
         elif self.ship:
             self.image = self.images['ship']
         elif self.miss:
-            self.image = self.images['ocean']
+            self.image = self.images['miss']
+        elif self.firing:
+            self.image = self.images['firing']
         else:
             self.image = pygame.Surface([CELL_SIZE, CELL_SIZE])
             self.image.fill((0, 0, 0))
@@ -59,12 +62,18 @@ class Cell(pygame.sprite.Sprite):
             return False
 
     def clear(self):
+        self.firing = False
         self.ship = False
         self.hit = False
         self.miss = False
 
+    def record_firing(self):
+        self.firing = True
+
     def record_hit(self):
+        self.firing = False
         self.hit = True
 
     def record_miss(self):
+        self.firing = False
         self.miss = True

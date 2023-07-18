@@ -12,8 +12,9 @@ class Game:
     def __init__(self, screen, messages_to_send, our_team, our_team_first_move):
         self.game_state = STATE_PREPARING
         self.images = {
-            'ocean': pygame.image.load('ocean.jpg').convert(),
-            'explosion': pygame.image.load('explosion.jpg').convert(),
+            'firing': pygame.image.load('missile.jpg').convert(),
+            'miss': pygame.image.load('ocean.jpg').convert(),
+            'hit': pygame.image.load('explosion.jpg').convert(),
             'ship': pygame.image.load('battleship.jpg').convert()
         }
         self.our_board = Board(pygame.freetype.Font, GAME_SIZE, 5, HEADER_HEIGHT, self.images)
@@ -23,7 +24,7 @@ class Game:
         self.our_team = our_team
         self.our_team_first_move = our_team_first_move
         self.save_positions_button = Button("Save", 70, 750, self.save_positions_to_file)
-        self.start_game_button = Button("Start", 130, 750, self.start_game)
+        self.start_game_button = Button("Start", 130, 750, self.indicate_ready_to_start)
 
         self.status_bar = StatusBar(
             BORDER_SIZE,
@@ -33,7 +34,7 @@ class Game:
         self.heading_bar = StatusBar(
             BORDER_SIZE,
             10)
-        self.heading_bar.update_text('<-- Your Board      Opponent\'s Board -->')
+        self.heading_bar.update_text('<-- Your Board        Opponent\'s Board -->')
 
         self.screen = screen
         self.selected_their_team = None
@@ -41,6 +42,7 @@ class Game:
         self.start_game_button.set_enabled(False)
         self.teams = Teams()
         self.their_board = Board(pygame.freetype.Font, GAME_SIZE, 580, HEADER_HEIGHT, self.images)
+        self.their_readiness_state = STATE_PREPARING
         self.their_team = None
         self.draw_game()
 
@@ -56,11 +58,19 @@ class Game:
         except Exception:
             self.status_bar.update_text("Error: Couldn't write to \"positions.txt\".")
 
-    def can_start_game(self):
+    def can_be_ready_to_start(self):
         return self.selected_their_team is not None and self.our_board.is_valid()
 
-    def start_game(self):
+    def indicate_ready_to_start(self):
         self.their_team = self.selected_their_team
+        self.messages_to_send.put(f"{self.our_team}|{ACTION_READY_TO_START}|0|0")
+        if self.their_readiness_state == STATE_READY_TO_START:
+            self.start_game()
+        else:
+            state = STATE_READY_TO_START
+            self.change_game_state(state)
+
+    def start_game(self):
         state = STATE_OUR_TURN if self.our_team_first_move > self.selected_their_team_first_move else STATE_THEIR_TURN
         self.change_game_state(state)
 
@@ -70,10 +80,12 @@ class Game:
             self.status_bar.update_text("It's your move. Good luck!")
         elif state == STATE_OUR_WIN:
             self.status_bar.update_text("Congratulations! You win!")
+        elif state == STATE_READY_TO_START:
+            self.status_bar.update_text("Your opponent is still preparing...")
         elif state == STATE_THEIR_WIN:
             self.status_bar.update_text("You lost. Maybe next time.")
         else:
-            self.status_bar.update_text('Waiting for %s to make their move...' % self.their_team)
+            self.status_bar.update_text(f"Waiting for {self.their_team} to make their move...")
         pygame.event.post(pygame.event.Event(pygame.USEREVENT, dict(action=ACTION_GAME_STATE_CHANGED, state=state)))
 
     def draw_game(self):
@@ -87,7 +99,7 @@ class Game:
             self.load_positions_button.draw(self.screen)
             self.start_game_button.draw(self.screen)
             self.teams.draw(self.screen)
-        else:
+        elif not self.game_state == STATE_READY_TO_START:
             self.their_board.draw(self.screen)
 
     def handle_event(self, event) -> bool:
@@ -115,7 +127,7 @@ class Game:
                 return False
             elif self.game_state == STATE_PREPARING \
                     and self.our_board.toggle_ship_click(event.pos[0], event.pos[1]) == HANDLED:
-                self.start_game_button.set_enabled(self.can_start_game())
+                self.start_game_button.set_enabled(self.can_be_ready_to_start())
                 return True
             else:
                 if self.game_state == STATE_PREPARING:
@@ -142,8 +154,9 @@ class Game:
                     return True
 
             elif event.action == ACTION_MAKE_MOVE and self.game_state == STATE_OUR_TURN:
-                self.messages_to_send.put('%s|%s|%d|%d' % (self.our_team, ACTION_MOVE, event.row, event.col))
-                return False
+                self.their_board.record_firing(event.row, event.col)
+                self.messages_to_send.put(f"{self.our_team}|{ACTION_MOVE}|{event.row}|{event.col}")
+                return True
 
             elif event.action == ACTION_MISS and event.team == self.their_team:
                 self.their_board.record_miss(event.row, event.col)
@@ -158,10 +171,16 @@ class Game:
                         self.change_game_state(STATE_OUR_TURN)
                     return True
 
+            elif event.action == ACTION_READY_TO_START:
+                self.their_readiness_state = STATE_READY_TO_START
+                if self.game_state == STATE_READY_TO_START:
+                    self.start_game()
+                    return True
+
             elif event.action == ACTION_SELECT_TEAM:
                 self.selected_their_team = event.team
                 self.selected_their_team_first_move = event.first_move_number
-                self.start_game_button.set_enabled(self.can_start_game())
+                self.start_game_button.set_enabled(self.can_be_ready_to_start())
                 return True
 
             elif event.action == ACTION_STATUS:
@@ -169,11 +188,11 @@ class Game:
                 return True
 
             elif event.action == ACTION_WE_GOT_HIT:
-                self.messages_to_send.put('%s|%s|%d|%d' % (self.our_team, ACTION_HIT, event.row, event.col))
+                self.messages_to_send.put(f"{self.our_team}|{ACTION_HIT}|{event.row}|{event.col}")
                 return False
 
             elif event.action == ACTION_WE_WERE_MISSED:
-                self.messages_to_send.put('%s|%s|%d|%d' % (self.our_team, ACTION_MISS, event.row, event.col))
+                self.messages_to_send.put(f"{self.our_team}|{ACTION_MISS}|{event.row}|{event.col}")
                 return False
 
         return False

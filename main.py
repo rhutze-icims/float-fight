@@ -16,7 +16,7 @@ our_team = args.team
 our_team_first_move = randint(0, 1000)
 
 pygame.init()
-pygame.display.set_caption('Float Fight - %s' % our_team)
+pygame.display.set_caption(f"Float Fight - {our_team}")
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 

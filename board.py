@@ -51,6 +51,10 @@ class Board:
             return HANDLED
         return NOT_HANDLED
 
+    def record_firing(self, row, col):
+        self.grid[row][col].record_firing()
+        self.sprites.update()
+
     def record_hit(self, row, col):
         self.grid[row][col].record_hit()
         self.sprites.update()
@@ -90,7 +94,7 @@ class Board:
             for col in range(self.grid_size):
                 if self.grid[row][col].hit:
                     hits_so_far += 1
-        print("So far, %d hit(s) of the %d needed to win." % (hits_so_far, hits_to_win))
+        print(f"So far, {hits_so_far} hit(s) of the {hits_to_win} needed to win.")
         return hits_so_far >= hits_to_win
 
     def is_valid(self):

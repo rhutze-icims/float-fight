@@ -1,21 +1,25 @@
 from board import Board
-import unittest
-from unittest.mock import Mock
+import pytest
 
 
-class TestBoard(unittest.TestCase):
+board = None
 
-    def setUp(self):
-        mock_font = Mock()
-        self.board = Board(mock_font, 10, 0, 0, None)
+@pytest.fixture(autouse=True)
+def run_before_and_after_tests():
+    global board
 
-    def test_is_valid(self):
-        self.board.grid[0][0].ship = False
-        self.assertFalse(self.board.is_valid())
+    # Setup
+    mock_font = lambda family, size: None
+    board = Board(mock_font, 10, 0, 0, None)
 
-        self.board.grid[0][0].ship = True
-        self.assertTrue(self.board.is_valid())
+    yield # run test
+
+    # Teardown
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_is_valid():
+    board.grid[0][0].ship = False
+    assert board.is_valid() is False
+
+    board.grid[0][0].ship = True
+    assert board.is_valid() is True

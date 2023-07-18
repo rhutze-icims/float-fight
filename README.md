@@ -4,16 +4,15 @@
 
 # Testing
 
-`python3 -m unittest`
+`python3 -m pytest`
 
 # Running
 
-`python3 main.py "Team Name"`
+`python3 main.py "My Team Name"`
 
 # TODO:
 
 - Visually acknowledge that a move has been sent in the grid.
-- Don't let first move happen until both teams have started.
 - Check for valid ship placement before game starts
 - Create second column when lots of team selection buttons
 - Keyboard grid selection and space/click confirmation
