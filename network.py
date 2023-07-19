@@ -42,7 +42,7 @@ class Network:
         membership = socket.inet_aton(MULTICAST_IP) + socket.inet_aton('0.0.0.0')
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, membership)
         self.sock.bind(('0.0.0.0', MULTICAST_PORT))
-        print(f"Listening on port [{self.sock.getsockname()[1]}]...")
+        print(f"Listening for multicasts on port [{self.sock.getsockname()[1]}]...")
         thread = Thread(target=self.network_loop)
         thread.start()
         return thread
@@ -53,7 +53,7 @@ class Network:
             self.exhaust_send_queue()
 
     def network_receive(self):
-        self.sock.settimeout(1.5)
+        self.sock.settimeout(1.0)
         try:
             received, address = self.sock.recvfrom(1024)
             message = received.decode("utf-8")
@@ -62,7 +62,7 @@ class Network:
                 self.process_acknowledgement(message_parts)
             elif not self.is_message_from_myself(message_parts):
                 if len(message_parts) > 4:
-                    print(f"Received: [{message}] from [{address}]")
+                    print(f"Received: [ {message} ] from {address}")
                     if self.should_acknowledge(received):
                         self.acknowledge(received)
                     event = pygame.event.Event(pygame.USEREVENT, dict(
@@ -88,7 +88,7 @@ class Network:
                 ready_to_send_next_message = True
             else:
                 if time() - self.unacked_last_attempt > 6:
-                    print(f"Retrying: {self.unacked_message}")
+                    print(f"Retrying: [ {self.unacked_message} ]")
                     self.unacked_last_attempt = time()
                     self.sock.sendto(str.encode(self.unacked_message), (MULTICAST_IP, MULTICAST_PORT))
 
@@ -106,7 +106,7 @@ class Network:
                             self.unacked_last_attempt = time()
                         self.sock.sendto(str.encode(message), (MULTICAST_IP, MULTICAST_PORT))
 
-                    print(f"Sent:     [{message}]")
+                    print(f"Sent:     [ {message} ]")
                     self.messages_to_send.task_done()
             except queue.Empty:
                 pass
@@ -130,6 +130,6 @@ class Network:
             if self.unacked_message \
                     and message_parts[0] == (f"ACK-{unacked_message_number}") \
                     and message_parts[2] == self.team_name:
-                print(f"Received acknowledgement from {message_parts[1]} for message #{unacked_message_number}.")
+                #print(f"Received acknowledgement from {message_parts[1]} for message #{unacked_message_number}.")
                 self.unacked_message = None
 
