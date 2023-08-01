@@ -9,7 +9,7 @@ from teams import Teams
 
 class Game:
 
-    def __init__(self, screen, messages_to_send, our_team, our_team_first_move):
+    def __init__(self, screen, messages_to_send, our_team, our_team_id):
         self.game_state = STATE_PREPARING
         self.images = {
             'firing': pygame.image.load('missile.jpg').convert(),
@@ -22,7 +22,7 @@ class Game:
         self.load_positions_button = Button("Load", 10, 750, self.load_positions_from_file)
         self.messages_to_send = messages_to_send
         self.our_team = our_team
-        self.our_team_first_move = our_team_first_move
+        self.our_team_id = our_team_id
         self.save_positions_button = Button("Save", 70, 750, self.save_positions_to_file)
         self.start_game_button = Button("Start", 130, 750, self.indicate_ready_to_start)
 
@@ -38,7 +38,7 @@ class Game:
 
         self.screen = screen
         self.selected_their_team = None
-        self.selected_their_team_first_move = None
+        self.selected_their_team_id = None
         self.start_game_button.set_enabled(False)
         self.teams = Teams()
         self.their_board = Board(pygame.freetype.Font, GAME_SIZE, 580, HEADER_HEIGHT, self.images)
@@ -71,7 +71,7 @@ class Game:
             self.change_game_state(state)
 
     def start_game(self):
-        state = STATE_OUR_TURN if self.our_team_first_move > self.selected_their_team_first_move else STATE_THEIR_TURN
+        state = STATE_OUR_TURN if self.our_team_id > self.selected_their_team_id else STATE_THEIR_TURN
         self.change_game_state(state)
 
     def change_game_state(self, state):
@@ -179,7 +179,7 @@ class Game:
 
             elif event.action == ACTION_SELECT_TEAM:
                 self.selected_their_team = event.team
-                self.selected_their_team_first_move = event.first_move_number
+                self.selected_their_team_id = event.team_id
                 self.start_game_button.set_enabled(self.can_be_ready_to_start())
                 return True
 

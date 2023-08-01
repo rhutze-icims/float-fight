@@ -17,12 +17,12 @@ class Teams:
     def __init__(self):
         self.rect = pygame.Rect(self.panel_x, self.panel_y, self.panel_width, self.panel_height)
 
-    def found_team(self, team, first_move_number):
+    def found_team(self, team, team_id):
         if team not in self.recent_teams:
             print(f"Registering team [{team}]...")
 
             self.recent_teams[team] = {
-                'first_move_number': first_move_number,
+                'team_id': team_id,
                 'updated': time()
             }
 
@@ -47,7 +47,7 @@ class Teams:
         event = pygame.event.Event(pygame.USEREVENT, dict(
             action='SELECT_TEAM',
             team=team,
-            first_move_number=self.recent_teams[team]['first_move_number']
+            team_id=self.recent_teams[team]['team_id']
         ))
         pygame.event.post(event)
 

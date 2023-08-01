@@ -9,8 +9,8 @@ from threading import Lock, Thread
 
 class Network:
 
-    def __init__(self, our_team, first_move_number):
-        self.first_move_number = first_move_number
+    def __init__(self, our_team, our_team_id):
+        self.our_team_id = our_team_id
         self.game_state = STATE_PREPARING
         self.message_counter = 100
         self.messages_to_send = queue.Queue()
@@ -79,7 +79,7 @@ class Network:
 
     def exhaust_send_queue(self):
         if self.game_state == STATE_PREPARING and int(time() - self.last_beacon_time) > 3:
-            self.messages_to_send.put(f"{self.team_name}|{ACTION_FIND_ME}|{self.first_move_number}|0")
+            self.messages_to_send.put(f"{self.team_name}|{ACTION_FIND_ME}|{self.our_team_id}|0")
             self.last_beacon_time = time()
 
         ready_to_send_next_message = False

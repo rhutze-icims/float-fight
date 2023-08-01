@@ -13,7 +13,7 @@ parser.add_argument('--team', required=True, help="Your team name (i.e. \"Team A
 args = parser.parse_args()
 
 our_team = args.team
-our_team_first_move = randint(0, 1000)
+our_team_id = randint(0, 1000)
 
 pygame.init()
 pygame.display.set_caption(f"Float Fight - {our_team}")
@@ -31,10 +31,10 @@ def handle_sigint(sig, frame):
 shutdown_signal = False
 signal.signal(signal.SIGINT, handle_sigint)
 
-network = Network(our_team, our_team_first_move)
+network = Network(our_team, our_team_id)
 networking_thread = network.start()
 
-game = Game(screen, network.get_messages_to_send(), our_team, our_team_first_move)
+game = Game(screen, network.get_messages_to_send(), our_team, our_team_id)
 game.draw_game()
 pygame.display.update()
 
