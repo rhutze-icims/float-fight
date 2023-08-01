@@ -9,14 +9,18 @@ import sys
 
 
 parser = argparse.ArgumentParser(description="Float Fight, made with pygame")
-parser.add_argument('--team', required=True, help="Your team name (i.e. \"Team A\")")
+parser.add_argument('--number', required=True, help="A game number from 0-1000")
 args = parser.parse_args()
 
-our_team = args.team
+game_number = int(args.number)
 our_team_id = randint(0, 1000)
 
+if game_number < 0 or game_number > 1000:
+    print("\nERROR: The game number must be between 0 and 1000.\n")
+    sys.exit(1)
+
 pygame.init()
-pygame.display.set_caption(f"Float Fight - {our_team}")
+pygame.display.set_caption(f"Float Fight - Game #{game_number}")
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 
@@ -25,16 +29,19 @@ def handle_sigint(sig, frame):
     global shutdown_signal
     if sig == signal.SIGINT:
         print('Received Ctrl+C. Shutting down...')
+        if shutdown_signal is True:
+            # Just in case the first attempt to CTRL+C didn't work.
+            sys.exit(0)
         shutdown_signal = True
 
 
 shutdown_signal = False
 signal.signal(signal.SIGINT, handle_sigint)
 
-network = Network(our_team, our_team_id)
+network = Network(game_number, our_team_id)
 networking_thread = network.start()
 
-game = Game(screen, network.get_messages_to_send(), our_team, our_team_id)
+game = Game(screen, network.get_messages_to_send(), our_team_id)
 game.draw_game()
 pygame.display.update()
 
