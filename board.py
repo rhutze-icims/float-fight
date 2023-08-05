@@ -101,27 +101,3 @@ class Board:
         # TODO: Make sure there are the five ships together.
         # return True
         return self.grid[0][0].ship
-
-    def clear_all_cells(self):
-        for row in range(self.grid_size):
-            for col in range(self.grid_size):
-                self.grid[row][col].clear()
-
-    def save_positions_to_file(self):
-        with open('positions.txt', 'w') as file:
-            for row in range(self.grid_size):
-                for col in range(self.grid_size):
-                    if self.grid[row][col].ship:
-                        file.write(str(row) + ',' + str(col) + '\n')
-        pygame.event.post(pygame.event.Event(
-            pygame.USEREVENT, dict(action=ACTION_STATUS, text='Positions saved to [positions.txt]')))
-
-    def load_positions_from_file(self):
-        with open('positions.txt', 'r') as file:
-            self.clear_all_cells()
-            line = file.readline()
-            while line:
-                loaded_position = line.split(',')
-                self.grid[int(loaded_position[0])][int(loaded_position[1])].ship = True
-                line = file.readline()
-        self.sprites.update()

@@ -12,6 +12,7 @@ class Game:
         self.messages_to_send = messages_to_send
         self.our_team_id = our_team_id
         self.game_state = STATE_PREPARING
+        self.length_of_ships_to_place = [5, 4, 3, 3, 2]
         self.images = {
             'firing': pygame.image.load('missile.jpg').convert(),
             'miss': pygame.image.load('ocean.jpg').convert(),
@@ -19,10 +20,7 @@ class Game:
             'ship': pygame.image.load('battleship.jpg').convert()
         }
         self.our_board = Board(pygame.freetype.Font, GAME_SIZE, 5, HEADER_HEIGHT, self.images)
-
-        self.load_positions_button = Button("Load", 10, 750, self.load_positions_from_file)
-        self.save_positions_button = Button("Save", 70, 750, self.save_positions_to_file)
-        self.start_game_button = Button("Start", 130, 750, self.indicate_ready_to_start)
+        self.start_game_button = Button("Start", 10, 750, self.indicate_ready_to_start)
 
         self.status_bar = StatusBar(
             BORDER_SIZE,
@@ -41,18 +39,6 @@ class Game:
         self.their_readiness_state = STATE_PREPARING
         self.their_team = None
         self.draw_game()
-
-    def load_positions_from_file(self):
-        try:
-            self.our_board.load_positions_from_file()
-        except Exception:
-            self.status_bar.update_text("Error: Couldn't read from \"positions.txt\".")
-
-    def save_positions_to_file(self):
-        try:
-            self.our_board.save_positions_to_file()
-        except Exception:
-            self.status_bar.update_text("Error: Couldn't write to \"positions.txt\".")
 
     def can_be_ready_to_start(self):
         return self.their_team_id is not None and self.our_board.is_valid()
@@ -90,8 +76,6 @@ class Game:
         self.heading_bar.draw(self.screen)
 
         if self.game_state == STATE_PREPARING:
-            self.save_positions_button.draw(self.screen)
-            self.load_positions_button.draw(self.screen)
             self.start_game_button.draw(self.screen)
         elif not self.game_state == STATE_READY_TO_START:
             self.their_board.draw(self.screen)
@@ -115,11 +99,7 @@ class Game:
             return False
 
         elif event.type == pygame.MOUSEBUTTONUP:
-            if self.save_positions_button.check_click(event.pos[0], event.pos[1]) == HANDLED:
-                return False
-            elif self.load_positions_button.check_click(event.pos[0], event.pos[1]) == HANDLED:
-                return False
-            elif self.game_state == STATE_PREPARING \
+            if self.game_state == STATE_PREPARING \
                     and self.our_board.toggle_ship_click(event.pos[0], event.pos[1]) == HANDLED:
                 self.start_game_button.set_enabled(self.can_be_ready_to_start())
                 return True
