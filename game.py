@@ -95,9 +95,10 @@ class Game:
             False if the screen can stay the same as it was.
         """
 
-        if event.type == pygame.KEYDOWN:
-            print("           Down!")
-            return False
+        if event.type == pygame.KEYUP:
+            if event.key in [pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_LEFT, pygame.K_SPACE]:
+                self.our_board.rotate_drawing()
+                return True
 
         elif event.type == pygame.MOUSEMOTION:
             if self.our_board.handle_mouse_hover(event.pos[0], event.pos[1]) == HANDLED:

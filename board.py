@@ -1,3 +1,5 @@
+from typing import NamedTuple
+
 from cell import Cell
 from config import *
 import pygame
@@ -24,6 +26,10 @@ class Board:
         self.grid_size = grid_size
         self.grid = [[Cell(row, col, images) for col in range(grid_size)] for row in range(grid_size)]
 
+        self.ships = [Ship(5, []), Ship(4, []), Ship(3, []), Ship(3, []), Ship(2, [])]
+        self.ship_drawing_index = 0
+        self.ship_drawing_vertical = True
+
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 cell = self.grid[row][col]
@@ -37,21 +43,66 @@ class Board:
                 self.grid[row][col].make_move_click(x, y)
         self.sprites.update()
 
-    def toggle_ship_click(self, x, y):
-        ship_toggled = False
-        for row in range(self.grid_size):
-            for col in range(self.grid_size):
-                if self.grid[row][col].toggle_ship_click(x, y):
-                    ship_toggled = True
-        self.sprites.update()
-        return ship_toggled
+    def toggle_ship_click(self, x, y) -> bool:
+        ship_drawing_length = 0 if self.ship_drawing_index is None else self.ships[self.ship_drawing_index].length
+        if ship_drawing_length > 0:
+            for row in range(self.grid_size):
+                for col in range(self.grid_size):
+                    self.grid[row][col].highlight = False
+            clicked_cell = self.find_click_row_col(x, y)
+            if clicked_cell is not None:
+                ship_cells = self.calculate_ship_cells(clicked_cell[0], clicked_cell[1], ship_drawing_length, self.ship_drawing_vertical)
+                if ship_cells is not None:
+                    self.ships[self.ship_drawing_index] = Ship(ship_drawing_length, ship_cells)
+                    for cell in ship_cells:
+                        cell.ship = True
+                    if self.ship_drawing_index + 1 < len(self.ships):
+                        self.ship_drawing_index += 1
+                    else:
+                        self.ship_drawing_index = None
+                    self.sprites.update()
+                    return True
+        return False
 
     def handle_mouse_hover(self, x, y):
-        for row in range(self.grid_size):
-            for col in range(self.grid_size):
-                self.grid[row][col].handle_mouse_hover(x, y)
+        ship_drawing_length = 0 if self.ship_drawing_index is None else self.ships[self.ship_drawing_index].length
+        if ship_drawing_length > 0:
+            for row in range(self.grid_size):
+                for col in range(self.grid_size):
+                    self.grid[row][col].highlight = False
+            clicked_cell = self.find_click_row_col(x, y)
+            if clicked_cell is not None:
+                ship_cells = self.calculate_ship_cells(clicked_cell[0], clicked_cell[1], ship_drawing_length, self.ship_drawing_vertical)
+                if ship_cells is not None:
+                    for cell in ship_cells:
+                        cell.highlight = True
         self.sprites.update()
         return True
+
+    def calculate_ship_cells(self, row, col, length, vertical):
+        cells = []
+        if vertical:
+            if row + length > self.grid_size:
+                return None
+            for r in range(row, row + length):
+                if self.grid[r][col].ship:
+                    return None
+                cells.append(self.grid[r][col])
+        else:
+            if col + length > self.grid_size:
+                return None
+            for c in range(col, col + length):
+                if self.grid[row][c].ship:
+                    return None
+                cells.append(self.grid[row][c])
+        return cells
+
+    def find_click_row_col(self, x, y):
+        for row in range(self.grid_size):
+            for col in range(self.grid_size):
+                if self.grid[row][col].contains(x, y):
+                    return [row, col]
+        return None
 
     def check_move(self, row, col):
         if self.grid[row][col].check_move():
@@ -105,7 +156,19 @@ class Board:
         print(f"So far, {hits_so_far} hit(s) of the {hits_to_win} needed to win.")
         return hits_so_far >= hits_to_win
 
+    def rotate_drawing(self):
+        for row in range(self.grid_size):
+            for col in range(self.grid_size):
+                self.grid[row][col].highlight = False
+        self.ship_drawing_vertical = not self.ship_drawing_vertical
+
     def is_valid(self):
-        # TODO: Make sure there are the five ships together.
-        # return True
-        return self.grid[0][0].ship
+        count = 0
+        for row in range(self.grid_size):
+            for col in range(self.grid_size):
+                count += 1 if self.grid[row][col].ship else 0
+        return count == 17
+
+class Ship(NamedTuple):
+    length: int
+    cells: [Cell]

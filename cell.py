@@ -5,8 +5,8 @@ from pygame.color import THECOLORS
 
 class Cell(pygame.sprite.Sprite):
     firing = False  # We're firing here
+    highlight = False # Highlighted when planning ship placement
     hit = False  # What we hear back from our opponent
-    hover = False # If the mouse is hovering over this cell right now
     miss = False  # What we hear back from our opponent
     ship = False  # Keep track of our own ships
     image = None  # Which image to draw
@@ -29,7 +29,7 @@ class Cell(pygame.sprite.Sprite):
             self.image = self.images['miss']
         elif self.firing:
             self.image = self.images['firing']
-        elif self.hover:
+        elif self.highlight:
             self.image = pygame.Surface([CELL_SIZE, CELL_SIZE])
             self.image.fill(THECOLORS['royalblue'])
         else:
@@ -66,9 +66,8 @@ class Cell(pygame.sprite.Sprite):
         else:
             return False
 
-    def handle_mouse_hover(self, x, y):
-        self.hover = self.rect.collidepoint(x, y)
-        return True
+    def contains(self, x, y):
+        return self.rect.collidepoint(x, y)
 
     def clear(self):
         self.firing = False
