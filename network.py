@@ -11,7 +11,7 @@ class Network:
 
     def __init__(self, game_number, our_team_id):
         self.our_team_id = our_team_id
-        self.game_state = STATE_PREPARING
+        self.our_game_state = STATE_PREPARING
         self.message_counter = 100
         self.messages_to_send = queue.Queue()
         self.unacked_last_attempt = None
@@ -35,7 +35,7 @@ class Network:
         self.shutdown_signal = True
 
     def update_game_state(self, state):
-        self.game_state = state
+        self.our_game_state = state
 
     def start(self):
         self.last_beacon_time = time()
@@ -78,7 +78,7 @@ class Network:
         return message_parts[1] == str(self.our_team_id)
 
     def exhaust_send_queue(self):
-        if self.game_state == STATE_PREPARING and int(time() - self.last_beacon_time) > 3:
+        if self.our_game_state == STATE_PREPARING and int(time() - self.last_beacon_time) > 3:
             self.messages_to_send.put(f"{self.our_team_id}|{ACTION_FIND_ME}|{self.our_team_id}|0")
             self.last_beacon_time = time()
 

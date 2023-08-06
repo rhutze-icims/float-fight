@@ -56,9 +56,12 @@ while not shutdown_signal:
             game.draw_game()
             pygame.display.update()
 
-        if game.handle_event(event) is True:
-            game.draw_game()
-            pygame.display.update()
+        try:
+            if game.handle_event(event) is True:
+                game.draw_game()
+                pygame.display.update()
+        except Exception as ex:
+            print(f"ERROR:         {ex}")
 
 network.shutdown()
 networking_thread.join()

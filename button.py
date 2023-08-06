@@ -1,4 +1,5 @@
 from config import *
+from pygame.color import THECOLORS
 import math
 import pygame
 
@@ -22,17 +23,14 @@ class Button:
         self.shadow_rect = pygame.Rect(left + SHADOW_SIZE, top + SHADOW_SIZE, button_width, BUTTON_HEIGHT)
 
     def draw(self, surface):
-        if self.selected:
-            text_color = WHITE
-            button_color = GREY
-        elif not self.enabled:
-            text_color = GREY
-            button_color = DARK_BLUE
+        if self.enabled:
+            text_color = THECOLORS['white']
+            button_color = THECOLORS['royalblue']
         else:
-            text_color = BLACK
-            button_color = BLUE
+            text_color = THECOLORS['gray50']
+            button_color = THECOLORS['gray80']
 
-        pygame.draw.rect(surface, BLACK, self.shadow_rect)
+        pygame.draw.rect(surface, THECOLORS['black'], self.shadow_rect)
         pygame.draw.rect(surface, button_color, self.rect)
 
         self.font.render_to(surface, (self.rect.centerx - (self.text_rect.width / 2),
@@ -49,6 +47,3 @@ class Button:
 
     def set_enabled(self, enabled):
         self.enabled = enabled
-
-    def set_selected(self, selected):
-        self.selected = selected

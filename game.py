@@ -3,6 +3,7 @@ from button import Button
 from config import *
 import pygame
 import pygame.freetype
+from pygame.color import THECOLORS
 from status_bar import StatusBar
 
 
@@ -11,7 +12,7 @@ class Game:
     def __init__(self, screen, messages_to_send, our_team_id):
         self.messages_to_send = messages_to_send
         self.our_team_id = our_team_id
-        self.game_state = STATE_PREPARING
+        self.our_game_state = STATE_PREPARING
         self.length_of_ships_to_place = [5, 4, 3, 3, 2]
         self.images = {
             'firing': pygame.image.load('missile.jpg').convert(),
@@ -36,7 +37,7 @@ class Game:
         self.their_team_id = None
         self.start_game_button.set_enabled(False)
         self.their_board = Board(pygame.freetype.Font, GAME_SIZE, 580, HEADER_HEIGHT, self.images)
-        self.their_readiness_state = STATE_PREPARING
+        self.their_game_state = STATE_PREPARING
         self.their_team = None
         self.draw_game()
 
@@ -45,7 +46,7 @@ class Game:
 
     def indicate_ready_to_start(self):
         self.messages_to_send.put(f"{self.our_team_id}|{ACTION_READY_TO_START}|0|0")
-        if self.their_readiness_state == STATE_READY_TO_START:
+        if self.their_game_state == STATE_READY_TO_START:
             self.start_game()
         else:
             state = STATE_READY_TO_START
@@ -56,7 +57,7 @@ class Game:
         self.change_game_state(state)
 
     def change_game_state(self, state):
-        self.game_state = state
+        self.our_game_state = state
         if state == STATE_OUR_TURN:
             self.status_bar.update_text("It's your move. Good luck!")
         elif state == STATE_OUR_WIN:
@@ -70,14 +71,14 @@ class Game:
         pygame.event.post(pygame.event.Event(pygame.USEREVENT, dict(action=ACTION_GAME_STATE_CHANGED, state=state)))
 
     def draw_game(self):
-        self.screen.fill(DARK_BLUE)
+        self.screen.fill(THECOLORS['royalblue4'])
         self.our_board.draw(self.screen)
         self.status_bar.draw(self.screen)
         self.heading_bar.draw(self.screen)
 
-        if self.game_state == STATE_PREPARING:
+        if self.our_game_state == STATE_PREPARING:
             self.start_game_button.draw(self.screen)
-        elif not self.game_state == STATE_READY_TO_START:
+        elif not self.our_game_state == STATE_READY_TO_START:
             self.their_board.draw(self.screen)
 
     def handle_event(self, event) -> bool:
@@ -98,13 +99,17 @@ class Game:
             print("           Down!")
             return False
 
+        elif event.type == pygame.MOUSEMOTION:
+            if self.our_board.handle_mouse_hover(event.pos[0], event.pos[1]) == HANDLED:
+                return True
+
         elif event.type == pygame.MOUSEBUTTONUP:
-            if self.game_state == STATE_PREPARING \
+            if self.our_game_state == STATE_PREPARING \
                     and self.our_board.toggle_ship_click(event.pos[0], event.pos[1]) == HANDLED:
                 self.start_game_button.set_enabled(self.can_be_ready_to_start())
                 return True
             else:
-                if self.game_state == STATE_PREPARING:
+                if self.our_game_state == STATE_PREPARING:
                     self.start_game_button.check_click(event.pos[0], event.pos[1])
                     return True
                 else:
@@ -128,7 +133,7 @@ class Game:
                     self.change_game_state(STATE_THEIR_TURN)
                     return True
 
-            elif event.action == ACTION_MAKE_MOVE and self.game_state == STATE_OUR_TURN:
+            elif event.action == ACTION_MAKE_MOVE and self.our_game_state == STATE_OUR_TURN:
                 self.their_board.record_firing(event.row, event.col)
                 self.messages_to_send.put(f"{self.our_team_id}|{ACTION_MOVE}|{event.row}|{event.col}")
                 return True
@@ -147,8 +152,8 @@ class Game:
                     return True
 
             elif event.action == ACTION_READY_TO_START:
-                self.their_readiness_state = STATE_READY_TO_START
-                if self.game_state == STATE_READY_TO_START:
+                self.their_game_state = STATE_READY_TO_START
+                if self.our_game_state == STATE_READY_TO_START:
                     self.start_game()
                     return True
 

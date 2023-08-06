@@ -1,11 +1,13 @@
 from config import *
 import pygame
+from pygame.color import THECOLORS
 
 
 class Cell(pygame.sprite.Sprite):
     firing = False  # We're firing here
-    hit = False  # What we hear from them
-    miss = False  # What we hear from them
+    hit = False  # What we hear back from our opponent
+    hover = False # If the mouse is hovering over this cell right now
+    miss = False  # What we hear back from our opponent
     ship = False  # Keep track of our own ships
     image = None  # Which image to draw
 
@@ -27,9 +29,12 @@ class Cell(pygame.sprite.Sprite):
             self.image = self.images['miss']
         elif self.firing:
             self.image = self.images['firing']
+        elif self.hover:
+            self.image = pygame.Surface([CELL_SIZE, CELL_SIZE])
+            self.image.fill(THECOLORS['royalblue'])
         else:
             self.image = pygame.Surface([CELL_SIZE, CELL_SIZE])
-            self.image.fill((0, 0, 0))
+            self.image.fill(THECOLORS['black'])
 
     def make_move_click(self, x, y):
         if self.rect.collidepoint(x, y) and not self.already_played():
@@ -60,6 +65,10 @@ class Cell(pygame.sprite.Sprite):
             return True
         else:
             return False
+
+    def handle_mouse_hover(self, x, y):
+        self.hover = self.rect.collidepoint(x, y)
+        return True
 
     def clear(self):
         self.firing = False

@@ -2,6 +2,7 @@ from cell import Cell
 from config import *
 import pygame
 import pygame.freetype
+from pygame.color import THECOLORS
 
 
 def num_to_letter(num):
@@ -45,6 +46,13 @@ class Board:
         self.sprites.update()
         return ship_toggled
 
+    def handle_mouse_hover(self, x, y):
+        for row in range(self.grid_size):
+            for col in range(self.grid_size):
+                self.grid[row][col].handle_mouse_hover(x, y)
+        self.sprites.update()
+        return True
+
     def check_move(self, row, col):
         if self.grid[row][col].check_move():
             self.sprites.update()
@@ -76,13 +84,13 @@ class Board:
             self.font.render_to(surface,
                                 (horizontal_rect.centerx - (horizontal_text_rect.width / 2),
                                 (horizontal_rect.centery - (horizontal_text_rect.height / 2))),
-                                str(row_col + 1), WHITE)
+                                str(row_col + 1), THECOLORS['white'])
 
             vertical_text_rect = self.font.get_rect(num_to_letter(row_col))
             self.font.render_to(surface,
                                 (vertical_rect.centerx - (vertical_text_rect.width / 2),
                                 (vertical_rect.centery - (vertical_text_rect.height / 2))),
-                                num_to_letter(row_col), WHITE)
+                                num_to_letter(row_col), THECOLORS['white'])
 
         self.sprites.draw(surface)
 

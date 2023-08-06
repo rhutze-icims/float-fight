@@ -1,4 +1,5 @@
 from config import *
+from pygame.color import THECOLORS
 import pygame
 
 
@@ -13,7 +14,7 @@ class StatusBar:
         self.text = text
 
     def draw(self, surface):
-        pygame.draw.rect(surface, GREY, self.rect)
+        pygame.draw.rect(surface, THECOLORS['grey'], self.rect)
 
         if len(self.text) > 0:
             text_rect = self.font.get_rect(self.text)
@@ -22,4 +23,4 @@ class StatusBar:
                 (self.rect.centerx - (text_rect.width / 2),
                 (self.rect.centery - (text_rect.height / 2))),
                 self.text,
-                BLACK)
+                THECOLORS['black'])
