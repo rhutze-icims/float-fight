@@ -148,7 +148,7 @@ class Board:
 
         self.sprites.draw(surface)
 
-    def is_wiped_out(self):
+    def is_every_position_hit(self) -> bool:
         hits_to_win = reduce(lambda total, ship: total + ship.length, self.ships, 0)
         hits_so_far = 0
         for row in range(self.grid_size):
@@ -158,18 +158,32 @@ class Board:
         print(f"          So far, {hits_so_far} hit(s) of the {hits_to_win} needed to win.")
         return hits_so_far >= hits_to_win
 
-    def rotate_drawing(self):
+    def rotate_ship_drawing(self) -> None:
+        """
+        When hovering the mouse over cells to decide where ships to be placed,
+        ship_drawing_vertical decides if the ship should be horizontal or vertical.
+        This function toggles ship_drawing_vertical between the two modes. And just in case,
+        it gets rid of any ship highlights that were already showing from the old mode.
+        """
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 self.grid[row][col].highlight = False
         self.ship_drawing_vertical = not self.ship_drawing_vertical
 
-    def has_enough_positions(self):
+    def has_enough_positions(self) -> bool:
+        """
+        Before our side is ready to start, all of our ships must be added to the board.
+        A clever way to figure that out is to count up how many cells have a ship in them.
+
+        Returns:
+            True if the expected number of cells have ships in them.
+        """
+        ship_position_count = reduce(lambda total, ship: total + ship.length, self.ships, 0)
         count = 0
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 count += 1 if self.grid[row][col].ship else 0
-        return count == 17
+        return count == ship_position_count
 
 
 class Ship(NamedTuple):

@@ -2,8 +2,9 @@ from board import Board
 from button import Button
 from config import *
 import pygame
-import pygame.freetype
 from pygame.color import THECOLORS
+from pygame.event import Event
+import pygame.freetype
 from status_bar import StatusBar
 
 
@@ -22,14 +23,10 @@ class Game:
         self.our_board = Board(pygame.freetype.Font, GAME_SIZE, 5, HEADER_HEIGHT, self.images)
         self.start_game_button = Button("Start", 10, 750, self.indicate_ready_to_start)
 
-        self.status_bar = StatusBar(
-            BORDER_SIZE,
-            (CELL_SIZE * GAME_SIZE) + (BORDER_SIZE * 2) + HEADER_HEIGHT)
+        self.status_bar = StatusBar(BORDER_SIZE, (CELL_SIZE * GAME_SIZE) + (BORDER_SIZE * 2) + HEADER_HEIGHT)
         self.status_bar.update_text('Choose your positions, using spacebar to rotate. Then, click Start.')
 
-        self.heading_bar = StatusBar(
-            BORDER_SIZE,
-            10)
+        self.heading_bar = StatusBar(BORDER_SIZE, 10)
         self.heading_bar.update_text('<-- Your Board        Opponent\'s Board -->')
 
         self.screen = screen
@@ -67,9 +64,13 @@ class Game:
             self.status_bar.update_text("You lost. Maybe next time.")
         else:
             self.status_bar.update_text(f"Waiting for your opponent to make their move...")
-        pygame.event.post(pygame.event.Event(pygame.USEREVENT, dict(action=ACTION_GAME_STATE_CHANGED, state=state)))
+        pygame.event.post(Event(pygame.USEREVENT, dict(action=ACTION_GAME_STATE_CHANGED, state=state)))
 
-    def draw_game(self):
+    def draw_game(self) -> None:
+        """
+        Passes the pygame screen to each of the classes that need to draw part of the screen.
+        """
+
         self.screen.fill(THECOLORS['royalblue4'])
         self.our_board.draw(self.screen)
         self.status_bar.draw(self.screen)
@@ -80,14 +81,12 @@ class Game:
         elif not self.our_game_state == STATE_READY_TO_START:
             self.their_board.draw(self.screen)
 
-    def handle_event(self, event) -> bool:
-        """Decides what, if anything, to do with a received event.
+    def handle_event(self, event: Event) -> bool:
+        """
+        Decides what, if anything, to do with a received event.
 
-        Retrieves rows pertaining to the given keys from the Table instance
-        represented by table_handle.  String keys will be UTF-8 encoded.
-
-        Args:
-            event: The event, which has at least a type.
+        Parameters:
+            event: An event from pygame
 
         Returns:
             True if the screen should be drawn as a result of what the event changed.
@@ -96,7 +95,7 @@ class Game:
 
         if event.type == pygame.KEYUP:
             if event.key in [pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_LEFT, pygame.K_SPACE]:
-                self.our_board.rotate_drawing()
+                self.our_board.rotate_ship_drawing()
                 return True
 
         elif event.type == pygame.MOUSEMOTION:
@@ -126,7 +125,7 @@ class Game:
 
             elif event.action == ACTION_HIT and event.team_id == self.their_team_id:
                 self.their_board.record_hit(event.row, event.col)
-                if self.their_board.is_wiped_out():
+                if self.their_board.is_every_position_hit():
                     self.change_game_state(STATE_OUR_WIN)
                     return True
                 else:
@@ -145,7 +144,7 @@ class Game:
 
             elif event.action == ACTION_MOVE:
                 if event.team_id == self.their_team_id and self.our_board.check_move(event.row, event.col) == HANDLED:
-                    if self.our_board.is_wiped_out():
+                    if self.our_board.is_every_position_hit():
                         self.change_game_state(STATE_THEIR_WIN)
                     else:
                         self.change_game_state(STATE_OUR_TURN)
@@ -169,4 +168,6 @@ class Game:
                 self.messages_to_send.put(f"{self.our_team_id}|{ACTION_MISS}|{event.row}|{event.col}")
                 return False
 
+        # If we got this far, then this event isn't of a type that we care about. So, we'll do
+        # nothing. We'll also return False, meaning that the screen does not need to redraw.
         return False

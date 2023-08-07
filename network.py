@@ -130,6 +130,5 @@ class Network:
             if self.unacked_message \
                     and message_parts[0] == (f"ACK-{unacked_message_number}") \
                     and message_parts[2] == str(self.our_team_id):
-                #print(f"          Received acknowledgement from {message_parts[1]} for message #{unacked_message_number}.")
                 self.unacked_message = None
 

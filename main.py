@@ -25,7 +25,12 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 
 
-def handle_sigint(sig, frame):
+def handle_sigint(sig, frame) -> None:
+    """
+    If the user presses CTRL+C, this function will get called. It sets a variable
+    called shutdown_signal to be True. The game's event loop keeps going and going.
+    That is, unless it sees this variable change, in which case the program will exit.
+    """
     global shutdown_signal
     if sig == signal.SIGINT:
         print('Received Ctrl+C. Shutting down...')
@@ -39,9 +44,10 @@ network = Network(game_number, our_team_id)
 networking_thread = network.start()
 
 game = Game(screen, network.get_messages_to_send(), our_team_id)
-game.draw_game()
 pygame.display.update()
 
+# This is the game's event loop, which keeps going and going, handling any events
+# that pygame tells it about.
 while not shutdown_signal:
     clock.tick(10) # limits frames per second to 10
 
@@ -52,6 +58,8 @@ while not shutdown_signal:
             elif event.type == pygame.USEREVENT and event.action == ACTION_GAME_STATE_CHANGED:
                 network.update_game_state(event.state)
             if game.handle_event(event) is True:
+                # If handle_event returned True, that means something changed, and
+                # we need to redraw the screen.
                 game.draw_game()
                 pygame.display.update()
         except Exception as ex:
