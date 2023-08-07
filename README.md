@@ -1,10 +1,10 @@
 # Float Fight
 
-This is basic game is used for teaching purposes in Girls Who Code sessions. It is for two 
-players that are on the same local network. Each player positions their ships along a grid. 
-Each player keeps their positions secret from the other. Then, they take turns guessing the 
-coordinates of the other player's ships. The winner is the first player to discover all of 
-their opponent's positions.
+This is basic game is used for teaching purposes in [Girls Who Code](https://girlswhocode.com/) 
+sessions. It is for two players that are on the same local network. Each player positions their 
+ships along a grid. Each player keeps their positions secret from the other. Then, they take 
+turns guessing the coordinates of the other player's ships. The winner is the first player to 
+discover all of their opponent's positions.
 
 You and your opponent must agree on a game number between 0 and 1000. When starting up the game,
 you will both provide this same number so that your instances can find each other.
@@ -21,7 +21,7 @@ of their opponent.
 
 ```
 python3 -m pip install --upgrade pip
-python3 -m pip install -r requirements.txt
+python3 -m pip install -r requirements.txt --user
 ```
 
 # Testing
