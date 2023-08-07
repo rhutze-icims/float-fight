@@ -1,3 +1,4 @@
+from functools import reduce
 from typing import NamedTuple
 
 from cell import Cell
@@ -51,7 +52,8 @@ class Board:
                     self.grid[row][col].highlight = False
             clicked_cell = self.find_click_row_col(x, y)
             if clicked_cell is not None:
-                ship_cells = self.calculate_ship_cells(clicked_cell[0], clicked_cell[1], ship_drawing_length, self.ship_drawing_vertical)
+                ship_cells = self.calculate_ship_cells(clicked_cell[0], clicked_cell[1],
+                                                       ship_drawing_length, self.ship_drawing_vertical)
                 if ship_cells is not None:
                     self.ships[self.ship_drawing_index] = Ship(ship_drawing_length, ship_cells)
                     for cell in ship_cells:
@@ -72,7 +74,8 @@ class Board:
                     self.grid[row][col].highlight = False
             clicked_cell = self.find_click_row_col(x, y)
             if clicked_cell is not None:
-                ship_cells = self.calculate_ship_cells(clicked_cell[0], clicked_cell[1], ship_drawing_length, self.ship_drawing_vertical)
+                ship_cells = self.calculate_ship_cells(clicked_cell[0], clicked_cell[1],
+                                                       ship_drawing_length, self.ship_drawing_vertical)
                 if ship_cells is not None:
                     for cell in ship_cells:
                         cell.highlight = True
@@ -146,14 +149,13 @@ class Board:
         self.sprites.draw(surface)
 
     def is_wiped_out(self):
-        hits_to_win = 5 + 4 + 3 + 3 + 2
-
+        hits_to_win = reduce(lambda total, ship: total + ship.length, self.ships, 0)
         hits_so_far = 0
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 if self.grid[row][col].hit:
                     hits_so_far += 1
-        print(f"So far, {hits_so_far} hit(s) of the {hits_to_win} needed to win.")
+        print(f"          So far, {hits_so_far} hit(s) of the {hits_to_win} needed to win.")
         return hits_so_far >= hits_to_win
 
     def rotate_drawing(self):

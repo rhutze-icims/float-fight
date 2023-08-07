@@ -29,6 +29,7 @@ of their opponent.
 `python3 main.py --number 401`
 
 If you are experimenting locally, run a second instance with the same game number.
+It is recommended to be disconnected from any VPN, which may block or redirect this network traffic.
 
 # TODO:
 
