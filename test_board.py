@@ -17,9 +17,15 @@ def run_before_and_after_tests():
     # Teardown
 
 
-def test_is_valid():
-    board.grid[0][0].ship = False
-    assert board.is_valid() is False
-
-    board.grid[0][0].ship = True
-    assert board.is_valid() is True
+def test_has_enough_positions():
+    assert board.has_enough_positions() is False
+    for col in range(0, 5):
+        board.grid[0][col].ship = True
+    for col in range(0, 4):
+        board.grid[1][col].ship = True
+    for col in range(0, 3):
+        board.grid[2][col].ship = True
+        board.grid[3][col].ship = True
+    for col in range(0, 2):
+        board.grid[4][col].ship = True
+    assert board.has_enough_positions() is True

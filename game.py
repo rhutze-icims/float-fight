@@ -13,7 +13,6 @@ class Game:
         self.messages_to_send = messages_to_send
         self.our_team_id = our_team_id
         self.our_game_state = STATE_PREPARING
-        self.length_of_ships_to_place = [5, 4, 3, 3, 2]
         self.images = {
             'firing': pygame.image.load('missile.jpg').convert(),
             'miss': pygame.image.load('ocean.jpg').convert(),
@@ -26,7 +25,7 @@ class Game:
         self.status_bar = StatusBar(
             BORDER_SIZE,
             (CELL_SIZE * GAME_SIZE) + (BORDER_SIZE * 2) + HEADER_HEIGHT)
-        self.status_bar.update_text('Choose your positions and click Start.')
+        self.status_bar.update_text('Choose your positions, using spacebar to rotate. Then, click Start.')
 
         self.heading_bar = StatusBar(
             BORDER_SIZE,
@@ -42,7 +41,7 @@ class Game:
         self.draw_game()
 
     def can_be_ready_to_start(self):
-        return self.their_team_id is not None and self.our_board.is_valid()
+        return self.their_team_id is not None and self.our_board.has_enough_positions()
 
     def indicate_ready_to_start(self):
         self.messages_to_send.put(f"{self.our_team_id}|{ACTION_READY_TO_START}|0|0")

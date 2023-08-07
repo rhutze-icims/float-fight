@@ -162,13 +162,14 @@ class Board:
                 self.grid[row][col].highlight = False
         self.ship_drawing_vertical = not self.ship_drawing_vertical
 
-    def is_valid(self):
+    def has_enough_positions(self):
         count = 0
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 count += 1 if self.grid[row][col].ship else 0
         return count == 17
 
+
 class Ship(NamedTuple):
     length: int
-    cells: [Cell]
+    cells: list[Cell]
