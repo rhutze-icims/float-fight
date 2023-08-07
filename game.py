@@ -23,8 +23,8 @@ class Game:
         self.our_board = Board(pygame.freetype.Font, GAME_SIZE, 5, HEADER_HEIGHT, self.images)
         self.start_game_button = Button("Start", 10, 750, self.indicate_ready_to_start)
 
-        self.status_bar = StatusBar(BORDER_SIZE, (CELL_SIZE * GAME_SIZE) + (BORDER_SIZE * 2) + HEADER_HEIGHT)
-        self.status_bar.update_text('Choose your positions, using spacebar to rotate. Then, click Start.')
+        self.game_status = StatusBar(BORDER_SIZE, (CELL_SIZE * GAME_SIZE) + (BORDER_SIZE * 2) + HEADER_HEIGHT)
+        self.game_status.update_text('Choose your positions, using spacebar to rotate. Then, click Start.')
 
         self.heading_bar = StatusBar(BORDER_SIZE, 10)
         self.heading_bar.update_text('<-- Your Board        Opponent\'s Board -->')
@@ -55,15 +55,15 @@ class Game:
     def change_game_state(self, state):
         self.our_game_state = state
         if state == STATE_OUR_TURN:
-            self.status_bar.update_text("It's your move. Good luck!")
+            self.game_status.update_text("It's your move. Good luck!")
         elif state == STATE_OUR_WIN:
-            self.status_bar.update_text("Congratulations! You win!")
+            self.game_status.update_text("Congratulations! You win!")
         elif state == STATE_READY_TO_START:
-            self.status_bar.update_text("Your opponent is still preparing...")
+            self.game_status.update_text("Your opponent is still preparing...")
         elif state == STATE_THEIR_WIN:
-            self.status_bar.update_text("You lost. Maybe next time.")
+            self.game_status.update_text("You lost. Maybe next time.")
         else:
-            self.status_bar.update_text(f"Waiting for your opponent to make their move...")
+            self.game_status.update_text(f"Waiting for your opponent to make their move...")
         pygame.event.post(Event(pygame.USEREVENT, dict(action=ACTION_GAME_STATE_CHANGED, state=state)))
 
     def draw_game(self) -> None:
@@ -73,7 +73,7 @@ class Game:
 
         self.screen.fill(THECOLORS['royalblue4'])
         self.our_board.draw(self.screen)
-        self.status_bar.draw(self.screen)
+        self.game_status.draw(self.screen)
         self.heading_bar.draw(self.screen)
 
         if self.our_game_state == STATE_PREPARING:
@@ -157,7 +157,7 @@ class Game:
                     return True
 
             elif event.action == ACTION_STATUS:
-                self.status_bar.update_text(event.text)
+                self.game_status.update_text(event.text)
                 return True
 
             elif event.action == ACTION_WE_GOT_HIT:
