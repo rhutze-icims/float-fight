@@ -29,9 +29,6 @@ def handle_sigint(sig, frame):
     global shutdown_signal
     if sig == signal.SIGINT:
         print('Received Ctrl+C. Shutting down...')
-        if shutdown_signal is True:
-            # Just in case the first attempt to CTRL+C didn't work.
-            sys.exit(0)
         shutdown_signal = True
 
 
@@ -49,14 +46,11 @@ while not shutdown_signal:
     clock.tick(10) # limits frames per second to 10
 
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            shutdown_signal = True
-        elif event.type == pygame.USEREVENT and event.action == ACTION_GAME_STATE_CHANGED:
-            network.update_game_state(event.state)
-            game.draw_game()
-            pygame.display.update()
-
         try:
+            if event.type == pygame.QUIT:
+                shutdown_signal = True
+            elif event.type == pygame.USEREVENT and event.action == ACTION_GAME_STATE_CHANGED:
+                network.update_game_state(event.state)
             if game.handle_event(event) is True:
                 game.draw_game()
                 pygame.display.update()
