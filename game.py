@@ -121,7 +121,7 @@ class Game:
                     self.their_team_id = event.team_id
                     print(f"          Their team ID is [ {self.their_team_id} ].")
                     self.start_game_button.set_enabled(self.can_be_ready_to_start())
-                return True
+                    return True
 
             elif event.action == ACTION_HIT and event.team_id == self.their_team_id:
                 self.their_board.record_hit(event.row, event.col)
@@ -152,7 +152,10 @@ class Game:
 
             elif event.action == ACTION_READY_TO_START:
                 self.their_game_state = STATE_READY_TO_START
-                if self.our_game_state == STATE_READY_TO_START:
+                if self.our_game_state == STATE_PREPARING:
+                    self.start_game_button.set_enabled(self.can_be_ready_to_start())
+                    return True
+                elif self.our_game_state == STATE_READY_TO_START:
                     self.start_game()
                     return True
 
