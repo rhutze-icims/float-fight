@@ -3,6 +3,12 @@ import pygame
 from pygame.color import THECOLORS
 
 
+# Each instance of our Cell is a pygame sprite. https://www.pygame.org/docs/ref/sprite.html
+# A sprite is a piece of the screen that knows how to draw itself, knows which x and y coordinates to draw itself
+# at, and knows if a mouse click's x and y coordinates touched part of that sprite or not. Sprites can also hold
+# onto variables about themselves, which is how each Cell remembers if it was hit or not.
+
+
 class Cell(pygame.sprite.Sprite):
     firing = False  # We're firing here
     highlight = False # Highlighted when planning ship placement
@@ -37,11 +43,18 @@ class Cell(pygame.sprite.Sprite):
             self.image.fill(THECOLORS['black'])
 
     def make_move_click(self, x, y):
-        if self.rect.collidepoint(x, y) and not self.already_played():
+        # Every Cell is going to hear about every mouse click. Most of the cells are going to say, "Nope, the click
+        # isn't for me." and just ignore it. It is up to this code to check with pygame's collide code and speak up
+        # and say "I'm the cell that got clicked, and I'll tell our opponent that we made a move!"
+        if self.contains(x, y) and not self.already_played():
             event = pygame.event.Event(pygame.USEREVENT, dict(action=ACTION_MAKE_MOVE, row=self.row, col=self.col))
             pygame.event.post(event)
 
     def check_move(self):
+        # This is the code that gets run when our opponent made a move and we need to figure out if it was a hit or
+        # a miss. Only the cell that the opponent guessed is going to have its check_move function called. If that
+        # cell has ship == True, then we announce a hit event. If ship == False, then we announce a miss event.
+
         if self.already_played():
             print('Cell [%d, %d] was already played.' % (self.row, self.col))
             return NOT_HANDLED
@@ -59,13 +72,6 @@ class Cell(pygame.sprite.Sprite):
     def already_played(self):
         return self.hit or self.miss
 
-    def toggle_ship_click(self, x, y):
-        if self.rect.collidepoint(x, y):
-            self.ship = not self.ship
-            return True
-        else:
-            return False
-
     def contains(self, x, y):
         return self.rect.collidepoint(x, y)
 
@@ -76,12 +82,16 @@ class Cell(pygame.sprite.Sprite):
         self.miss = False
 
     def record_firing(self):
+        # This function is how the board tells this cell that it should show a missle until we hear back about
+        # whether the move was a hit or a miss.
         self.firing = True
 
     def record_hit(self):
+        # This function is how the board tells this cell that it should become a hit.
         self.firing = False
         self.hit = True
 
     def record_miss(self):
+        # This function is how the board tells this cell that it should become a miss.
         self.firing = False
         self.miss = True

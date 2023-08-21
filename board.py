@@ -8,6 +8,10 @@ import pygame.freetype
 from pygame.color import THECOLORS
 
 
+# Python arrays identify each slot using number, not a letter. Our game board identifies each row and column using
+# a letting, not a number. The num_to_letter and letter_to_num functions help other parts of the code to easily
+# switch back and forth between the two.
+
 def num_to_letter(num):
     return LETTERS[num]
 
@@ -101,10 +105,15 @@ class Board:
         return cells
 
     def find_click_row_col(self, x, y):
+        # Iterate through each row.
         for row in range(self.grid_size):
+            # Within each row, iterate through each column.
             for col in range(self.grid_size):
+                # For each cell, if it is the one that was clicked, return that row and column.
+                # Otherwise, keep looking.
                 if self.grid[row][col].contains(x, y):
                     return [row, col]
+        # If we got this far without returning, it looks like the mouse click wasn't on any of the cells.
         return None
 
     def check_move(self, row, col):
@@ -114,14 +123,18 @@ class Board:
         return NOT_HANDLED
 
     def record_firing(self, row, col):
+        # Tells the cell at that row and column that it is where a move was made and that it should change its
+        # variables and which image it is showing.
         self.grid[row][col].record_firing()
         self.sprites.update()
 
     def record_hit(self, row, col):
+        # Same as record_firing, but tells the cell that it should consider itself hit.
         self.grid[row][col].record_hit()
         self.sprites.update()
 
     def record_miss(self, row, col):
+        # Same as record_firing, but tells the cell that it should consider itself missed.
         self.grid[row][col].record_miss()
         self.sprites.update()
 
@@ -149,13 +162,21 @@ class Board:
         self.sprites.draw(surface)
 
     def is_every_position_hit(self) -> bool:
+        # Ask each ship in self.ships how many cells it takes up. Count them all up into hits_to_win
+        # Python's "reduce" is a clever way to do all of that in one line of code! But, it's just doing the
+        # same thing as the code a few lines down that, instead of counting the ships, is counting the hits.
         hits_to_win = reduce(lambda total, ship: total + ship.length, self.ships, 0)
+
+        # Now we're going to count the hits. We'll start counting at 0.
         hits_so_far = 0
+
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 if self.grid[row][col].hit:
                     hits_so_far += 1
+
         print(f"          So far, {hits_so_far} hit(s) of the {hits_to_win} needed to win.")
+        # This returns true if the number of hits reached the number of cells.
         return hits_so_far >= hits_to_win
 
     def rotate_ship_drawing(self) -> None:
