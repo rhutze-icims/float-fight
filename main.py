@@ -1,26 +1,12 @@
-import argparse
 from config import *
 from game import Game
-from network import Network
 import pygame
-from random import randint
 import signal
 import sys
 
 
-parser = argparse.ArgumentParser(description="Float Fight, made with pygame")
-parser.add_argument('--number', required=True, help="A game number from 0-1000")
-args = parser.parse_args()
-
-game_number = int(args.number)
-our_team_id = randint(0, 1000)
-
-if game_number < 0 or game_number > 1000:
-    print("\nERROR: The game number must be between 0 and 1000.\n")
-    sys.exit(1)
-
 pygame.init()
-pygame.display.set_caption(f"Float Fight - Game #{game_number}")
+pygame.display.set_caption(f"Tic-tac-toe")
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 
@@ -42,10 +28,7 @@ shutdown_signal = False
 # closed, handle_sigint is the function that should get called so that we can do something in response.
 signal.signal(signal.SIGINT, handle_sigint)
 
-network = Network(game_number, our_team_id)
-networking_thread = network.start()
-
-game = Game(screen, network.get_messages_to_send(), our_team_id)
+game = Game(screen)
 pygame.display.update()
 
 # This is the game's event loop, which keeps going and going, handling any events
@@ -62,11 +45,6 @@ while not shutdown_signal:
         try:
             if event.type == pygame.QUIT:
                 shutdown_signal = True
-            elif event.type == pygame.USEREVENT and event.action == ACTION_GAME_STATE_CHANGED:
-                # While the game is in a preparing state, the network code knows to keep announcing "I'm here!
-                # I'm here!" so our opponent can find us. Once the game state changes, the network code knows
-                # not to do that anymore. That's why we tell it about game state changes, too.
-                network.update_game_state(event.state)
 
             # Redrawing the whole screen too often can be a lot of work for pygame, so we only do it when we need
             # to. The game module's handle_event does all sorts of things. It was written to always return either
@@ -78,9 +56,6 @@ while not shutdown_signal:
 
         except Exception as ex:
             print(f"ERROR:    {ex}")
-
-network.shutdown()
-networking_thread.join()
 
 pygame.quit()
 sys.exit(0)
