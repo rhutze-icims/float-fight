@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run",
+      "type": "python",
+      "request": "launch",
+      "program": "main.py",
+      "args": ["--number", "401"],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Test",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}
