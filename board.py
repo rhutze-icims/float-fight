@@ -48,14 +48,6 @@ class Board:
         self.cell_group.update()
 
     def draw(self, surface):
-        for row_col in range(self.grid_size):
-            horizontal_rect = pygame.Rect(self.board_x + BORDER_SIZE + (row_col * (CELL_SIZE + 2)),
-                                          self.board_y,
-                                          CELL_SIZE, BORDER_SIZE)
-            vertical_rect = pygame.Rect(self.board_x,
-                                        self.board_y + BORDER_SIZE + (row_col * (CELL_SIZE + 2)),
-                                        BORDER_SIZE, CELL_SIZE)
-
         self.cell_group.draw(surface)
 
     def check_for_winner(self) -> str:

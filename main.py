@@ -6,7 +6,7 @@ import sys
 
 
 pygame.init()
-pygame.display.set_caption(f"Tic-tac-toe")
+pygame.display.set_caption("Tic-tac-toe")
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 
