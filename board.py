@@ -1,3 +1,4 @@
+import config
 from cell import Cell
 from config import *
 import pygame
@@ -62,7 +63,26 @@ class Board:
         self.cell_group.draw(surface)
 
     def check_for_winner(self) -> str:
-        # TODO
-        # return STATE_X_WIN
+        winning_combos = [
+            [ [0,0], [1,0], [2,0] ], # Column 0 down
+            [ [0,1], [1,1], [2,1] ], # Column 1 down
+            [ [0,2], [1,2], [2,2] ], # Column 2 down
+            [ [0,0], [0,1], [0,2] ], # Row 0 across
+            [ [1,0], [1,1], [1,2] ], # Row 1 across
+            [ [2,0], [2,1], [2,2] ], # Row 2 across
+        ]
+
+        # TODO: Is something missing above?
+
+        for combo in winning_combos:
+            first_cell = self.grid [combo[0][0]] [combo[0][1]]
+            second_cell = self.grid [combo[1][0]] [combo[1][1]]
+            third_cell = self.grid [combo[2][0]] [combo[2][1]]
+
+            if first_cell.x is True and second_cell.x is True and third_cell.x is True:
+                return 'X'
+            if first_cell.o is True and second_cell.o is True and third_cell.o is True:
+                return 'O'
+
         return None
 
