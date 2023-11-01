@@ -13,7 +13,18 @@ class Board:
         self.board_x = x
         self.board_y = y
         self.grid_size = grid_size
-        self.grid = [[Cell(row, col, images) for col in range(grid_size)] for row in range(grid_size)]
+
+        # The grid is an array of rows. Then, each row has an array of columns in it.
+        self.grid = []
+        for row_number in range(grid_size):
+            row_of_columns = []
+            for col_number in range(grid_size):
+                row_of_columns.append(Cell(row_number, col_number, images))
+            self.grid.append(row_of_columns)
+
+        # Python has a fancy way of building the grid in one line, but it's also hard to read.
+        #self.grid = [[Cell(row, col, images) for col in range(grid_size)] for row in range(grid_size)]
+
 
         for row in range(self.grid_size):
             for col in range(self.grid_size):
