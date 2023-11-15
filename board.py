@@ -32,6 +32,7 @@ class Board:
         self.board_x = x
         self.board_y = y
         self.grid_size = grid_size
+        self.already_making_a_move = False
 
         # The grid is an array of rows. Then, each row has an array of columns in it.
         self.grid = []
@@ -70,10 +71,12 @@ class Board:
     # decides it is the one that was clicked will decide what to do, change its state, and make an announcement with
     # an event.
     def make_move_click(self, x, y):
-        for row in range(self.grid_size):
-            for col in range(self.grid_size):
-                self.grid[row][col].make_move_click(x, y)
-        self.cell_group.update()
+        if not self.already_making_a_move:
+            self.already_making_a_move = True
+            for row in range(self.grid_size):
+                for col in range(self.grid_size):
+                    self.grid[row][col].make_move_click(x, y)
+            self.cell_group.update()
 
     def toggle_ship_click(self, x, y) -> bool:
         ship_drawing_length = 0 if self.ship_drawing_index is None else self.ships[self.ship_drawing_index].length
@@ -182,11 +185,13 @@ class Board:
         # Same as record_firing, but tells the cell that it should consider itself hit.
         self.grid[row][col].record_hit()
         self.cell_group.update()
+        self.already_making_a_move = False
 
     def record_miss(self, row, col):
         # Same as record_firing, but tells the cell that it should consider itself missed.
         self.grid[row][col].record_miss()
         self.cell_group.update()
+        self.already_making_a_move = False
 
     def draw(self, surface):
         for row_col in range(self.grid_size):

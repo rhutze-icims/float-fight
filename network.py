@@ -54,7 +54,7 @@ class Network:
             self.exhaust_send_queue()
 
     def network_receive(self):
-        self.sock.settimeout(1.0)
+        self.sock.settimeout(0.5)
         try:
             received, address = self.sock.recvfrom(1024)
             message = received.decode("utf-8")
